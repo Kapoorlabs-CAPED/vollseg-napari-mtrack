@@ -14,15 +14,10 @@ contributions:
     - id: vollseg-napari-mtrack.make_sample_data
       python_name: vollseg_napari_mtrack._sample_data:make_sample_data
       title: Load sample data from VollSeg Napari MTrack Plugin
-    - id: vollseg-napari-mtrack.make_qwidget
-      python_name: vollseg_napari_mtrack._widget:ExampleQWidget
-      title: Make example QWidget
-    - id: vollseg-napari-mtrack.make_magic_widget
-      python_name: vollseg_napari_mtrack._widget:example_magic_widget
-      title: Make example magic widget
-    - id: vollseg-napari-mtrack.make_func_widget
-      python_name: vollseg_napari_mtrack._widget:example_function_widget
-      title: Make example function widget
+    - id: vollseg-napari-mtrack.widget
+      python_name: vollseg_napari_mtrack._widget:plugin_wrapper_mtrack
+      title: Make MTrack Plugin
+
   readers:
     - command: vollseg-napari-mtrack.get_reader
       accepts_directories: false
@@ -39,10 +34,5 @@ contributions:
       display_name: VollSeg Napari MTrack Plugin
       key: unique_id.1
   widgets:
-    - command: vollseg-napari-mtrack.make_qwidget
-      display_name: Example QWidget
-    - command: vollseg-napari-mtrack.make_magic_widget
-      display_name: Example Magic Widget
-    - command: vollseg-napari-mtrack.make_func_widget
-      autogenerate: true
-      display_name: Example Function Widget
+    - command: vollseg-napari-mtrack.widget
+      display_name: Make MTrack Plugin
