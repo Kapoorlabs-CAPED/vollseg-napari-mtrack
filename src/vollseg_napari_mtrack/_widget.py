@@ -75,7 +75,7 @@ def plugin_wrapper_mtrack():
 
     DEFAULTS_MODEL = dict(
         vollseg_model_class=UNET,
-        oneat_model_type=CUSTOM_VOLLSEG,
+        vollseg_model_type=CUSTOM_VOLLSEG,
         model_vollnet=models_vollnet[0][0],
         axes="YX",
     )
@@ -93,8 +93,9 @@ def plugin_wrapper_mtrack():
         maximum_gap=4,
     )
 
+    print(__file__)
     kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
-    citation = Path("https://doi.org/10.1242/focalplane.10759")
+    citation = Path("https://doi.org/10.1038/s41598-018-37767-1")
 
     @magicgui(
         label_head=dict(

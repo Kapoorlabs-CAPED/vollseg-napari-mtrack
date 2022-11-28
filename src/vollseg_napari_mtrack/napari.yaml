@@ -16,7 +16,7 @@ contributions:
       title: Load sample data from VollSeg Napari MTrack Plugin
     - id: vollseg-napari-mtrack.widget
       python_name: vollseg_napari_mtrack._widget:plugin_wrapper_mtrack
-      title: Make MTrack Plugin
+      title: MTrack
 
   readers:
     - command: vollseg-napari-mtrack.get_reader
@@ -35,4 +35,4 @@ contributions:
       key: unique_id.1
   widgets:
     - command: vollseg-napari-mtrack.widget
-      display_name: Make MTrack Plugin
+      display_name: MTrack
