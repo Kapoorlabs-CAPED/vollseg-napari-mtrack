@@ -64,4 +64,4 @@ def reader_function(path):
 
     layer_type = "image"
 
-    return [(np.stack(images_array), add_kwargs, layer_type)]
+    return [(images_array, add_kwargs, layer_type)]
