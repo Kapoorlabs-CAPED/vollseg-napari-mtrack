@@ -8,7 +8,7 @@ https://napari.org/stable/plugins/guides.html?#readers.
 import os
 
 import numpy as np
-from tifffile import imread, resize
+from tifffile import imread
 
 
 def napari_get_reader(path):
@@ -50,7 +50,7 @@ def reader_function(path):
         for file in os.listdir(path):
             if any(file.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, file))
-                image = resize(image, (max_y, max_x))
+                image = np.resize(image, (max_y, max_x))
                 images.append(image)
 
         images_array = np.array(images)
