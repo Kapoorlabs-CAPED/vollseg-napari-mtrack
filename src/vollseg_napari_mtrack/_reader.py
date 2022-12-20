@@ -32,17 +32,15 @@ def reader_function(path):
     if os.path.isdir(path):
 
         # Set the maximum dimensions to the minimum possible values
-        max_x, max_y = float("inf"), float("inf")
+        max_x, max_y = 0, 0
         acceptable_formats = [".tif", ".TIFF", ".TIF", ".png"]
 
         images = []
         for file in os.listdir(path):
-            print(file)
             if any(file.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, file))
                 max_x = max(max_x, image.shape[1])
                 max_y = max(max_y, image.shape[0])
-                print(max_x, max_y)
             else:
                 print(
                     f"ignoring the file {file} as it is not a valid image file"
