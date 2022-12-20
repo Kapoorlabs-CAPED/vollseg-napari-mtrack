@@ -39,7 +39,7 @@ def reader_function(path):
         for file in os.listdir(path):
 
             if any(file.endswith(f) for f in acceptable_formats):
-                image = imread(os.oath.join(path, file))
+                image = imread(os.path.join(path, file))
                 max_x = max(max_x, image.shape[1])
                 max_y = max(max_y, image.shape[0])
             else:

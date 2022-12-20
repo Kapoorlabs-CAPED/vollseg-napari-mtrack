@@ -125,14 +125,14 @@ def plugin_wrapper_mtrack():
         else:
             return None
 
-    kapoorlogo = abspath(__file__, "../resources/kapoorlogo.png")
+    kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
     citation = Path("https://doi.org/10.1038/s41598-018-37767-1")
 
     @magicgui(
         label_head=dict(
             widget_type="Label",
             label=f'<h1> <img src="{kapoorlogo}"> </h1>',
-            value=f'<h5><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h5>',
+            value=f'<h1><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h1>',
         ),
         image=dict(label="Input Image"),
         max_error=dict(
