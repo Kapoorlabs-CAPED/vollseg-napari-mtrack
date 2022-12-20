@@ -5,21 +5,25 @@ Made by Kapoorlabs, 2022
 """
 
 import functools
+import time
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import napari
 import numpy as np
 from magicgui import magicgui
 from magicgui import widgets as mw
+from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy
 
 
 def plugin_wrapper_mtrack():
 
+    from caped_ai_mtrack import LinearFunction
+    from csbdeep.utils import load_json
     from vollseg import UNET
-    from vollseg.pretrained import get_registered_models
+    from vollseg.pretrained import get_model_folder, get_registered_models
 
     DEBUG = True
 
@@ -62,28 +66,38 @@ def plugin_wrapper_mtrack():
 
         return decorator_change_handler
 
-    _models_vollnet, _aliases_vollnet = get_registered_models(UNET)
+    _models_vollseg, _aliases_vollseg = get_registered_models(UNET)
 
-    models_vollnet = [
-        ((_aliases_vollnet[m][0] if len(_aliases_vollnet[m]) > 0 else m), m)
-        for m in _models_vollnet
+    models_vollseg = [
+        ((_aliases_vollseg[m][0] if len(_aliases_vollseg[m]) > 0 else m), m)
+        for m in _models_vollseg
     ]
 
     worker = None
-    PRETRAINED = "PRETRAINED"
+    model_vollseg_configs = dict()
+    model_selected_vollseg = None
+    # model_selected_ransac = None
+
+    PRETRAINED = UNET
     CUSTOM_VOLLSEG = "CUSTOM_VOLLSEG"
-
-    DEFAULTS_MODEL = dict(
-        vollseg_model_class=UNET,
-        vollseg_model_type=CUSTOM_VOLLSEG,
-        model_vollnet=models_vollnet[0][0],
-        axes="YX",
-    )
-
     vollseg_model_type_choices = [
         ("PreTrained", PRETRAINED),
         ("Custom U-Net", CUSTOM_VOLLSEG),
+        ("None", "NOSEG"),
     ]
+
+    # ransac_model_type_choices = [
+    #    ("Linear", LinearFunction),
+    #    ("Quadratic", QuadraticFunction),
+    # ]
+
+    DEFAULTS_MODEL = dict(
+        vollseg_model_type=UNET,
+        model_vollseg=models_vollseg[0][0],
+        model_vollseg_none="NOSEG",
+        axes="YX",
+        ransac_model_type=LinearFunction,
+    )
 
     DEFAULTS_PRED_PARAMETERS = dict(
         norm_image=True,
@@ -92,6 +106,24 @@ def plugin_wrapper_mtrack():
         min_num_time_points=20,
         maximum_gap=4,
     )
+
+    @functools.lru_cache(maxsize=None)
+    def get_model_vollseg(vollseg_model_type, model_vollseg):
+        if vollseg_model_type == CUSTOM_VOLLSEG:
+            path_vollseg = Path(model_vollseg)
+            path_vollseg.is_dir() or _raise(
+                FileNotFoundError(f"{path_vollseg} is not a directory")
+            )
+
+            model_class_vollseg = UNET
+            return model_class_vollseg(
+                None, name=path_vollseg.name, basedir=str(path_vollseg.parent)
+            )
+
+        elif vollseg_model_type != DEFAULTS_MODEL["model_vollseg_none"]:
+            return vollseg_model_type.local_from_pretrained(model_vollseg)
+        else:
+            return None
 
     print(__file__)
     kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
@@ -132,6 +164,16 @@ def plugin_wrapper_mtrack():
             choices=vollseg_model_type_choices,
             value=DEFAULTS_MODEL["vollseg_model_type"],
         ),
+        model_vollseg=dict(
+            widget_type="ComboBox",
+            visible=False,
+            label="Pre-trained UNET Model",
+            choices=models_vollseg,
+            value=DEFAULTS_MODEL["model_vollseg"],
+        ),
+        model_vollseg_none=dict(
+            widget_type="Label", visible=False, label="NOSEG"
+        ),
         model_folder=dict(
             widget_type="FileEdit",
             visible=False,
@@ -159,6 +201,8 @@ def plugin_wrapper_mtrack():
         min_num_time_points,
         maximum_gap,
         vollseg_model_type,
+        model_vollseg,
+        model_vollseg_none,
         model_folder,
         n_tiles,
         defaults_model_button,
@@ -168,21 +212,30 @@ def plugin_wrapper_mtrack():
 
         nonlocal worker
 
-        """
-            widget_for_modeltype = {
-                NEATVollNet: plugin.model_vollnet,
-                NEATLRNet: plugin.model_lrnet,
-                NEATTResNet: plugin.model_tresnet,
-                NEATResNet: plugin.model_resnet,
-                CSV_PREDICTIONS: plugin.csv_folder,
-                CUSTOM_NEAT: plugin.model_folder,
-            }
-            """
-
         plugin.label_head.native.setOpenExternalLinks(True)
         plugin.label_head.native.setSizePolicy(
             QSizePolicy.MinimumExpanding, QSizePolicy.Fixed
         )
+
+        widget_for_vollseg_modeltype = {
+            UNET: plugin.model_vollseg,
+            "NOSEG": plugin.model_vollseg_none,
+            CUSTOM_VOLLSEG: plugin.model_folder,
+        }
+
+        def select_model_vollseg(key):
+            nonlocal model_selected_vollseg
+            if key is not None:
+                model_selected_vollseg = key
+                # config_vollseg = model_vollseg_configs.get(key)
+                # update_vollseg(
+                #   "model_vollseg", config_vollseg is not None, config_vollseg
+                # )
+            if (
+                plugin.vollseg_model_type.value
+                == DEFAULTS_MODEL["model_vollseg_none"]
+            ):
+                model_selected_vollseg = None
 
         def widgets_inactive(*widgets, active):
             for widget in widgets:
@@ -192,6 +245,66 @@ def plugin_wrapper_mtrack():
             for widget in widgets:
                 widget.native.setStyleSheet(
                     "" if valid else "background-color: red"
+                )
+
+        @change_handler(plugin.vollseg_model_type, init=False)
+        def _seg_model_type_change(seg_model_type: Union[str, type]):
+            selected = widget_for_vollseg_modeltype[seg_model_type]
+            for w in {
+                plugin.model_vollseg,
+                plugin.model_vollseg_none,
+                plugin.model_folder,
+            } - {selected}:
+                w.hide()
+
+            selected.show()
+
+            # Trigger model change
+            selected.changed(selected.value)
+
+        @change_handler(plugin.model_vollseg, plugin.model_vollseg_none)
+        def _seg_model_change(model_name: str):
+
+            if Signal.sender() is not plugin.model_vollseg_none:
+
+                model_class_vollseg = UNET
+                key = model_class_vollseg, model_name
+
+                if key not in model_vollseg_configs:
+
+                    @thread_worker
+                    def _get_model_folder():
+                        return get_model_folder(*key)
+
+                    def _process_model_folder(path):
+
+                        try:
+                            model_vollseg_configs[key] = load_json(
+                                str(path / "config.json")
+                            )
+                        finally:
+                            select_model_vollseg[key]
+                            plugin.progress_bar.hide()
+
+                    worker = _get_model_folder()
+                    worker.returned.connect(_process_model_folder)
+                    worker.start()
+
+                    # delay showing progress bar -> won't show up if model already downloaded
+                    # TODO: hacky -> better way to do this?
+                    time.sleep(0.1)
+                    plugin.call_button.enabled = False
+                    plugin.progress_bar.label = "Downloading UNET model"
+                    plugin.progress_bar.show()
+
+                else:
+                    select_model_vollseg(key)
+
+            else:
+                select_model_vollseg(None)
+                plugin.call_button.enabled = True
+                plugin.model_folder_vollseg.line_edit.tooltip = (
+                    "Invalid model directory"
                 )
 
         @change_handler(plugin.max_error)
