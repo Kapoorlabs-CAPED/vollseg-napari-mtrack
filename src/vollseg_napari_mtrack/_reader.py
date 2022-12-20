@@ -37,11 +37,12 @@ def reader_function(path):
 
         images = []
         for file in os.listdir(path):
-
+            print(file)
             if any(file.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, file))
                 max_x = max(max_x, image.shape[1])
                 max_y = max(max_y, image.shape[0])
+                print(max_x, max_y)
             else:
                 print(
                     f"ignoring the file {file} as it is not a valid image file"
