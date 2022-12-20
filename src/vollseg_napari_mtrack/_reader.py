@@ -50,7 +50,7 @@ def reader_function(path):
         for file in os.listdir(path):
             if any(file.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, file))
-                image = np.resize(image, (max_y, max_x))
+                image = np.resize(image, (int(max_y), int(max_x)))
                 images.append(image)
 
         images_array = np.array(images)
