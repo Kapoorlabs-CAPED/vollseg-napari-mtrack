@@ -1,5 +1,4 @@
 import napari
-import numpy as np
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -7,8 +6,6 @@ import numpy as np
 def test_example_q_widget():
     # make viewer and add an image layer using our fixture
     viewer = napari.Viewer()
-    viewer.add_image(np.random.random((100, 100)))
-
     # create our widget, passing in the viewer
     viewer.window.add_plugin_dock_widget("vollseg-napari-mtrack", "MTrack")
     napari.run()
