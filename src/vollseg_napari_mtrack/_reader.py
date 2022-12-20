@@ -60,4 +60,4 @@ def reader_function(path):
         else:
             print(f"ignoring the file {file} as it is not a valid image file")
 
-    return images_array
+    return [(images_array)]
