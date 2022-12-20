@@ -20,15 +20,15 @@ contributions:
 
   readers:
     - command: vollseg-napari-mtrack.get_reader
-      accepts_directories: false
-      filename_patterns: ['*.npy']
+      accepts_directories: true
+      filename_patterns: ['*.tif']
   writers:
     - command: vollseg-napari-mtrack.write_multiple
       layer_types: ['image*','labels*']
       filename_extensions: []
     - command: vollseg-napari-mtrack.write_single_image
       layer_types: ['image']
-      filename_extensions: ['.npy']
+      filename_extensions: ['.tif']
   sample_data:
     - command: vollseg-napari-mtrack.make_sample_data
       display_name: VollSeg Napari MTrack Plugin
