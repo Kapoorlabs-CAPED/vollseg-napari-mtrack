@@ -132,7 +132,7 @@ def plugin_wrapper_mtrack():
         label_head=dict(
             widget_type="Label",
             label=f'<h1> <img src="{kapoorlogo}"> </h1>',
-            value=f'<h1><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h1>',
+            value=f'<h5><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h5>',
         ),
         image=dict(label="Input Image"),
         max_error=dict(
