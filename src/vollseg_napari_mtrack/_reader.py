@@ -63,5 +63,5 @@ def reader_function(path):
     add_kwargs = {}
 
     layer_type = "image"
-
-    return [(images_array, add_kwargs, layer_type)]
+    data = np.squeeze(np.stack(images_array))
+    return [(data, add_kwargs, layer_type)]
