@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QSizePolicy
 
 def plugin_wrapper_mtrack():
 
-    from caped_ai_mtrack import LinearFunction
+    from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import load_json
     from vollseg import UNET
     from vollseg.pretrained import get_model_folder, get_registered_models
@@ -86,10 +86,10 @@ def plugin_wrapper_mtrack():
         ("None", "NOSEG"),
     ]
 
-    # ransac_model_type_choices = [
-    #    ("Linear", LinearFunction),
-    #    ("Quadratic", QuadraticFunction),
-    # ]
+    ransac_model_type_choices = [
+        ("Linear", LinearFunction),
+        ("Quadratic", QuadraticFunction),
+    ]
 
     DEFAULTS_MODEL = dict(
         vollseg_model_type=UNET,
@@ -125,15 +125,14 @@ def plugin_wrapper_mtrack():
         else:
             return None
 
-    print(__file__)
-    kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
+    kapoorlogo = abspath(__file__, "../resources/kapoorlogo.png")
     citation = Path("https://doi.org/10.1038/s41598-018-37767-1")
 
     @magicgui(
         label_head=dict(
             widget_type="Label",
             label=f'<h1> <img src="{kapoorlogo}"> </h1>',
-            value=f'<h5><a href=" {citation}"> FocalPlane</a></h5>',
+            value=f'<h5><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h5>',
         ),
         image=dict(label="Input Image"),
         max_error=dict(
@@ -180,6 +179,13 @@ def plugin_wrapper_mtrack():
             label="Custom VollSeg",
             mode="d",
         ),
+        ransac_model_type=dict(
+            widget_type="RadioButtons",
+            label="Ransac Model Type",
+            orientation="horizontal",
+            choices=ransac_model_type_choices,
+            value=DEFAULTS_MODEL["ransac_model_type"],
+        ),
         n_tiles=dict(
             widget_type="LiteralEvalLineEdit",
             label="Number of Tiles",
@@ -204,6 +210,8 @@ def plugin_wrapper_mtrack():
         model_vollseg,
         model_vollseg_none,
         model_folder,
+        ransac_model_type,
+        ransac_model_linear,
         n_tiles,
         defaults_model_button,
         progress_bar: mw.ProgressBar,
