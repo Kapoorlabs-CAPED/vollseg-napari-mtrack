@@ -8,7 +8,7 @@ def test_reader(tmp_path):
     """An example of how you might test your plugin."""
 
     # write some fake data using your supported file format
-    my_test_file = str(tmp_path / "myfile.npy")
+    my_test_file = str(tmp_path / "myfile.tif")
     original_data = np.random.rand(20, 20)
     np.save(my_test_file, original_data)
 
