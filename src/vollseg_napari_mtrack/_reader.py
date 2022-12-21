@@ -36,6 +36,7 @@ def reader_function(path):
         acceptable_formats = [".tif", ".TIFF", ".TIF", ".png"]
 
         images = []
+        names = []
         for fname in os.listdir(path):
             if any(fname.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, fname))
@@ -51,7 +52,7 @@ def reader_function(path):
                 image = imread(os.path.join(path, fname))
                 image = np.resize(image, (int(max_y), int(max_x)))
                 images.append(image)
-
+                names.append(os.path.splitext(os.path.basename(fname))[0])
         images_array = np.array(images)
 
     elif os.path.isfile(path):
