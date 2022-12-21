@@ -21,7 +21,7 @@ contributions:
   readers:
     - command: vollseg-napari-mtrack.get_reader
       accepts_directories: true
-      filename_patterns: ['*.tif']
+      filename_patterns: []
   writers:
     - command: vollseg-napari-mtrack.write_multiple
       layer_types: ['image*','labels*']

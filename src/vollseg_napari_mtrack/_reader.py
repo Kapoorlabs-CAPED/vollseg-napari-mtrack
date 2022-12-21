@@ -36,29 +36,29 @@ def reader_function(path):
         acceptable_formats = [".tif", ".TIFF", ".TIF", ".png"]
 
         images = []
-        for file in os.listdir(path):
-            if any(file.endswith(f) for f in acceptable_formats):
-                image = imread(os.path.join(path, file))
+        for fname in os.listdir(path):
+            if any(fname.endswith(f) for f in acceptable_formats):
+                image = imread(os.path.join(path, fname))
                 max_x = max(max_x, image.shape[1])
                 max_y = max(max_y, image.shape[0])
             else:
                 print(
-                    f"ignoring the file {file} as it is not a valid image file"
+                    f"ignoring the file {fname} as it is not a valid image file"
                 )
 
-        for file in os.listdir(path):
-            if any(file.endswith(f) for f in acceptable_formats):
-                image = imread(os.path.join(path, file))
+        for fname in os.listdir(path):
+            if any(fname.endswith(f) for f in acceptable_formats):
+                image = imread(os.path.join(path, fname))
                 image = np.resize(image, (int(max_y), int(max_x)))
                 images.append(image)
 
         images_array = np.array(images)
 
     elif os.path.isfile(path):
-        if any(file.endswith(f) for f in acceptable_formats):
+        if any(fname.endswith(f) for f in acceptable_formats):
             images_array = imread(path)
         else:
-            print(f"ignoring the file {file} as it is not a valid image file")
+            print(f"ignoring the file {fname} as it is not a valid image file")
 
     add_kwargs = {}
 
