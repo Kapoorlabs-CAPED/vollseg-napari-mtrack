@@ -428,7 +428,7 @@ def plugin_wrapper_mtrack():
             if (
                 self.valid.image_axes
                 and self.valid.n_tiles
-                and self.valid.model_unet
+                and self.valid.model_vollseg
             ):
                 axes_image, image = _image_axes(True)
                 (axes_model_vollseg, config_vollseg) = _model(True)
