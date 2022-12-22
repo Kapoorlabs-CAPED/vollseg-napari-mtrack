@@ -76,8 +76,7 @@ def plugin_wrapper_mtrack():
     worker = None
     model_vollseg_configs = dict()
     model_selected_vollseg = None
-    # model_selected_ransac = None
-
+    model_selected_ransac = None
     PRETRAINED = UNET
     CUSTOM_VOLLSEG = "CUSTOM_VOLLSEG"
     vollseg_model_type_choices = [
@@ -106,6 +105,10 @@ def plugin_wrapper_mtrack():
         min_num_time_points=20,
         maximum_gap=4,
     )
+
+    def get_model_ransac(ransac_model_type):
+
+        return ransac_model_type
 
     @functools.lru_cache(maxsize=None)
     def get_model_vollseg(vollseg_model_type, model_vollseg):
@@ -211,7 +214,6 @@ def plugin_wrapper_mtrack():
         model_vollseg_none,
         model_folder,
         ransac_model_type,
-        ransac_model_linear,
         n_tiles,
         defaults_model_button,
         progress_bar: mw.ProgressBar,
@@ -219,7 +221,11 @@ def plugin_wrapper_mtrack():
         # x = get_data(image)
 
         nonlocal worker
-
+        if model_selected_vollseg is not None:
+            vollseg_model = get_model_vollseg(*model_selected_vollseg)
+        if model_selected_ransac is not None:
+            ransac_model = get_model_ransac(model_selected_ransac)
+        print(vollseg_model, ransac_model)
         plugin.label_head.native.setOpenExternalLinks(True)
         plugin.label_head.native.setSizePolicy(
             QSizePolicy.MinimumExpanding, QSizePolicy.Fixed
@@ -230,6 +236,11 @@ def plugin_wrapper_mtrack():
             "NOSEG": plugin.model_vollseg_none,
             CUSTOM_VOLLSEG: plugin.model_folder,
         }
+
+        def select_model_ransac(key):
+            nonlocal model_selected_ransac
+            model_selected_ransac = key
+            print(model_selected_ransac)
 
         def select_model_vollseg(key):
             nonlocal model_selected_vollseg
@@ -254,6 +265,19 @@ def plugin_wrapper_mtrack():
                 widget.native.setStyleSheet(
                     "" if valid else "background-color: red"
                 )
+
+        @change_handler(plugin.ransac_model_type, init=False)
+        def _ransac_model_change():
+
+            selected = plugin.ransac_model_type.value
+            if selected is ransac_model_type_choices[0][0]:
+
+                key = ransac_model_type_choices[0][1]
+
+            if selected is ransac_model_type_choices[1][0]:
+                key = ransac_model_type_choices[1][1]
+
+            select_model_ransac(key)
 
         @change_handler(plugin.vollseg_model_type, init=False)
         def _seg_model_type_change(seg_model_type: Union[str, type]):
@@ -291,7 +315,7 @@ def plugin_wrapper_mtrack():
                                 str(path / "config.json")
                             )
                         finally:
-                            select_model_vollseg[key]
+                            select_model_vollseg(key)
                             plugin.progress_bar.hide()
 
                     worker = _get_model_folder()
