@@ -580,6 +580,21 @@ def plugin_wrapper_mtrack():
                     "Invalid model directory"
                 )
 
+        @change_handler(plugin.model_folder, init=False)
+        def _model_vollseg_folder_change(_path: str):
+            path = Path(_path)
+            key = CUSTOM_VOLLSEG, path
+            try:
+                if not path.is_dir():
+                    return
+                model_vollseg_configs[key] = load_json(
+                    str(path / "config.json")
+                )
+            except FileNotFoundError:
+                pass
+            finally:
+                select_model_vollseg(key)
+
         @change_handler(plugin_ransac_parameters.max_error)
         def _max_error_change(value: float):
             plugin_ransac_parameters.max_error.value = value
@@ -602,10 +617,97 @@ def plugin_wrapper_mtrack():
             for k, v in DEFAULTS_SEG_PARAMETERS.items():
                 getattr(plugin, k).value = v
 
+        # -> triggered by napari (if there are any open images on plugin launch)
+
         @change_handler(plugin.image, init=False)
         def _image_change(image: napari.layers.Image):
             plugin.image.tooltip = (
                 f"Shape: {get_data(image).shape, str(image.name)}"
             )
+
+            # dimensionality of selected model: 2, 3, or None (unknown)
+            ndim_model = 2
+
+            if (
+                plugin.vollseg_model_type.value
+                != DEFAULTS_MODEL["model_vollseg_none"]
+            ):
+                if model_selected_vollseg in model_vollseg_configs:
+                    config = model_vollseg_configs[model_selected_vollseg]
+                    ndim_model = config.get("n_dim")
+            axes = None
+
+            if ndim_model == 2:
+                axes = "YX"
+                plugin.n_tiles.value = (1, 1)
+
+            else:
+                raise NotImplementedError()
+
+            if axes == plugin.axes.value:
+                # make sure to trigger a changed event, even if value didn't actually change
+                plugin.axes.changed(axes)
+            else:
+                plugin.axes.value = axes
+            plugin.n_tiles.changed(plugin.n_tiles.value)
+
+        # -> triggered by _image_change
+        @change_handler(plugin.axes, plugin.vollseg_model_type, init=False)
+        def _axes_change():
+            value = plugin.axes.value
+            image = plugin.image.value
+            axes = plugin.axes.value
+            try:
+                image is not None or _raise(ValueError("no image selected"))
+                axes = axes_check_and_normalize(
+                    value, length=get_data(image).ndim, disallowed="S"
+                )
+                if (
+                    plugin.vollseg_model_type.value
+                    != DEFAULTS_MODEL["model_vollseg_none"]
+                ):
+                    update_vollseg("image_axes", True, (axes, image, None))
+            except ValueError as err:
+                if (
+                    plugin.vollseg_model_type.value
+                    != DEFAULTS_MODEL["model_vollseg_none"]
+                ):
+                    update_vollseg("image_axes", False, (value, image, err))
+            # finally:
+            # widgets_inactive(plugin.timelapse_opts, active=('T' in axes))
+
+        # -> triggered by _image_change
+        @change_handler(
+            plugin.n_tiles, plugin.vollsegseg_model_type, init=False
+        )
+        def _n_tiles_change():
+            image = plugin.image.value
+            try:
+                image is not None or _raise(ValueError("no image selected"))
+                value = plugin.n_tiles.get_value()
+
+                shape = get_data(image).shape
+                try:
+                    value = tuple(value)
+                    len(value) == len(shape) or _raise(TypeError())
+                except TypeError:
+                    raise ValueError(
+                        f"must be a tuple/list of length {len(shape)}"
+                    )
+                if not all(isinstance(t, int) and t >= 1 for t in value):
+                    raise ValueError("each value must be an integer >= 1")
+                if (
+                    plugin.vollseg_model_type.value
+                    != DEFAULTS_MODEL["model_vollseg_none"]
+                ):
+                    update_vollseg("n_tiles", True, (value, image, None))
+            except (ValueError, SyntaxError) as err:
+                if (
+                    plugin.vollseg_model_type.value
+                    != DEFAULTS_MODEL["model_vollseg_none"]
+                ):
+                    update_vollseg("n_tiles", False, (None, image, err))
+
+        # -------------------------------------------------------------------------
 
     return plugin
