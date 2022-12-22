@@ -22,6 +22,7 @@ def plugin_wrapper_mtrack():
 
     from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
+    from skimage.morphology import thin
     from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
 
@@ -325,7 +326,7 @@ def plugin_wrapper_mtrack():
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
-            skeleton, name="Skeleton", scale=scale_out, opacity=0.5
+            thin(unet_mask), name="Skeleton", scale=scale_out, opacity=0.5
         )
 
     def return_segment_unet(pred):
@@ -338,7 +339,7 @@ def plugin_wrapper_mtrack():
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
-            skeleton, name="Skeleton", scale=scale_out, opacity=0.5
+            thin(unet_mask), name="Skeleton", scale=scale_out, opacity=0.5
         )
 
     @thread_worker(connect={"returned": return_segment_unet_time})
