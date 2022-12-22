@@ -317,7 +317,7 @@ def plugin_wrapper_mtrack():
             self.valid = SimpleNamespace(
                 **{
                     k: False
-                    for k in ("image_axes", "vollseg_model", "n_tiles")
+                    for k in ("image_axes", "model_vollseg", "n_tiles")
                 }
             )
             self.args = SimpleNamespace()
@@ -498,7 +498,7 @@ def plugin_wrapper_mtrack():
             model_selected_vollseg = key
             config_vollseg = model_vollseg_configs.get(key)
             update_vollseg(
-                "vollseg_model", config_vollseg is not None, config_vollseg
+                "model_vollseg", config_vollseg is not None, config_vollseg
             )
         if (
             plugin.vollseg_model_type.value
