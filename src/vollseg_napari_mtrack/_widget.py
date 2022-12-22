@@ -22,7 +22,7 @@ def plugin_wrapper_mtrack():
 
     from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
-    from vollseg import UNET
+    from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
 
     DEBUG = True
@@ -91,10 +91,10 @@ def plugin_wrapper_mtrack():
     ]
 
     DEFAULTS_MODEL = dict(
-        vollseg_model_type=UNET,
+        vollseg_model_type=CUSTOM_VOLLSEG,
         model_vollseg=models_vollseg[0][0],
         model_vollseg_none="NOSEG",
-        axes="YX",
+        axes="TYX",
         ransac_model_type=LinearFunction,
     )
 
@@ -258,13 +258,119 @@ def plugin_wrapper_mtrack():
             vollseg_model = get_model_vollseg(*model_selected_vollseg)
         if model_selected_ransac is not None:
             ransac_model = get_model_ransac(model_selected_ransac)
+        print(ransac_model)
+        axes_out = None
+        if vollseg_model is not None:
+            assert vollseg_model._axes_out[-1] == "C"
+            axes_out = list(vollseg_model._axes_out[:-1])
+        scale_in_dict = dict(zip(axes, image.scale))
+        scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
+        if "T" in axes:
+            t = axes_dict(axes)["T"]
+            n_frames = x.shape[t]
 
-        print(vollseg_model, ransac_model)
+            def progress_thread(current_time):
+
+                progress_bar.label = "VollSeg Prediction (files)"
+                progress_bar.range = (0, n_frames)
+                progress_bar.value = current_time + 1
+                progress_bar.show()
+
+        if "T" in axes and axes_out is not None:
+            x_reorder = np.moveaxis(x, t, 0)
+
+            axes_reorder = axes.replace("T", "")
+            axes_out.insert(t, "T")
+            # determine scale for output axes
+            scale_in_dict = dict(zip(axes, image.scale))
+            scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
+            worker = _Unet_time(
+                vollseg_model, x_reorder, axes_reorder, scale_out, t, x
+            )
+            worker.returned.connect(return_segment_unet_time)
+            worker.yielded.connect(progress_thread)
+        else:
+            worker = _Unet(vollseg_model, x, axes, scale_out)
+            worker.returned.connect(return_segment_unet)
+
+        progress_bar.hide()
 
     plugin.label_head.value = '<br>Citation <tt><a href="https://doi.org/10.1038/s41598-018-37767-1" style="color:gray;">MTrack Sci Reports</a></tt>'
     plugin.label_head.native.setSizePolicy(
         QSizePolicy.MinimumExpanding, QSizePolicy.Fixed
     )
+
+    def return_segment_unet_time(pred):
+
+        res, scale_out, t, x = pred
+        unet_mask, skeleton, denoised_image = zip(*res)
+
+        unet_mask = np.asarray(unet_mask)
+        unet_mask = unet_mask > 0
+        unet_mask = np.moveaxis(unet_mask, 0, t)
+        unet_mask = np.reshape(unet_mask, x.shape)
+
+        skeleton = np.asarray(skeleton)
+        skeleton = skeleton > 0
+        skeleton = np.moveaxis(skeleton, 0, t)
+        skeleton = np.reshape(skeleton, x.shape)
+
+        denoised_image = np.asarray(denoised_image)
+        denoised_image = np.moveaxis(denoised_image, 0, t)
+        denoised_image = np.reshape(denoised_image, x.shape)
+
+        name_remove = "Skeleton"
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_remove):
+                plugin.viewer.value.layers.remove(layer)
+
+        plugin.viewer.value.add_labels(
+            skeleton, name="Skeleton", scale=scale_out, opacity=0.5
+        )
+
+    def return_segment_unet(pred):
+
+        res, scale_out = pred
+        unet_mask, skeleton, denoised_image = res
+        name_remove = "Skeleton"
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_remove):
+                plugin.viewer.value.layers.remove(layer)
+
+        plugin.viewer.value.add_labels(
+            skeleton, name="Skeleton", scale=scale_out, opacity=0.5
+        )
+
+    @thread_worker(connect={"returned": return_segment_unet_time})
+    def _Unet_time(model_unet, x_reorder, axes_reorder, scale_out, t, x):
+        pre_res = []
+        for count, _x in enumerate(x_reorder):
+
+            yield count
+            pre_res.append(
+                VollSeg(
+                    _x,
+                    unet_model=model_unet,
+                    n_tiles=plugin.n_tiles.value,
+                    axes=axes_reorder,
+                )
+            )
+
+        pred = pre_res, scale_out, t, x
+        return pred
+
+    @thread_worker(connect={"returned": return_segment_unet})
+    def _Unet(model_unet, x, axes, scale_out):
+
+        res = VollSeg(
+            x,
+            unet_model=model_unet,
+            n_tiles=plugin.n_tiles.value,
+            axes=axes,
+        )
+
+        pred = res, scale_out
+        return pred
 
     widget_for_vollseg_modeltype = {
         UNET: plugin.model_vollseg,
