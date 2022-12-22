@@ -82,7 +82,7 @@ def plugin_wrapper_mtrack():
     vollseg_model_type_choices = [
         ("PreTrained", PRETRAINED),
         ("Custom U-Net", CUSTOM_VOLLSEG),
-        ("None", "NOSEG"),
+        ("NOSEG", "NOSEG"),
     ]
 
     ransac_model_type_choices = [
@@ -170,7 +170,7 @@ def plugin_wrapper_mtrack():
         ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
-        persist=True,
+        persist=False,
         call_button=True,
     )
     def plugin_ransac_parameters(
