@@ -668,7 +668,7 @@ def plugin_wrapper_mtrack():
         # widgets_inactive(plugin.timelapse_opts, active=('T' in axes))
 
     # -> triggered by _image_change
-    @change_handler(plugin.n_tiles, plugin.vollsegseg_model_type, init=False)
+    @change_handler(plugin.n_tiles, plugin.vollseg_model_type, init=False)
     def _n_tiles_change():
         image = plugin.image.value
         try:
