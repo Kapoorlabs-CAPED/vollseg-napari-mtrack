@@ -99,7 +99,7 @@ def plugin_wrapper_mtrack():
     )
 
     model_selected_ransac = DEFAULTS_MODEL["ransac_model_type"]
-    DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1))
+    DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
         max_error=2,
@@ -722,7 +722,7 @@ def plugin_wrapper_mtrack():
         )
 
         # dimensionality of selected model: 2, 3, or None (unknown)
-        ndim_model = 2
+        ndim = get_data(image).ndim
 
         if (
             plugin.vollseg_model_type.value
@@ -733,7 +733,10 @@ def plugin_wrapper_mtrack():
                 ndim_model = config.get("n_dim")
         axes = None
 
-        if ndim_model == 2:
+        if ndim == 3:
+            axes = "TYX"
+            plugin.n_tiles.value = (1, 1, 1)
+        elif ndim == 2 and ndim_model == 2:
             axes = "YX"
             plugin.n_tiles.value = (1, 1)
 
