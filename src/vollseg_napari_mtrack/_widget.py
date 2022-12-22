@@ -248,12 +248,15 @@ def plugin_wrapper_mtrack():
         print(x.shape)
         axes = axes_check_and_normalize(axes, length=x.ndim)
         nonlocal worker
+        progress_bar.label = "Starting MTrack"
         if model_selected_vollseg is not None:
             vollseg_model = get_model_vollseg(*model_selected_vollseg)
         if model_selected_ransac is not None:
             ransac_model = get_model_ransac(model_selected_ransac)
+
         print(vollseg_model, ransac_model)
-        plugin.label_head.native.setOpenExternalLinks(True)
+
+        plugin.label_head.value = '<br>Citation <tt><a href="https://doi.org/10.1038/s41598-018-37767-1" style="color:gray;">MTrack Sci Reports</a></tt>'
         plugin.label_head.native.setSizePolicy(
             QSizePolicy.MinimumExpanding, QSizePolicy.Fixed
         )
