@@ -98,7 +98,7 @@ def plugin_wrapper_mtrack():
         ransac_model_type=LinearFunction,
     )
 
-    DEFAULTS_SEG_PARAMETERS = dict(norm_image=True, n_tiles=(1, 1))
+    DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
         max_error=2,
