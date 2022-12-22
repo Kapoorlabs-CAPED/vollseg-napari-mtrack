@@ -501,7 +501,7 @@ def plugin_wrapper_mtrack():
         ):
             model_selected_vollseg = None
 
-    @change_handler(plugin.ransac_model_type, init=False)
+    @change_handler(plugin_ransac_parameters.ransac_model_type, init=False)
     def _ransac_model_change():
 
         selected = plugin.ransac_model_type.value
