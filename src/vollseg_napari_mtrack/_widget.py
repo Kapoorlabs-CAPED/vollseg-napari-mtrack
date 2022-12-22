@@ -369,7 +369,7 @@ def plugin_wrapper_mtrack():
 
             def _image_axes(valid):
                 axes, image, err = getattr(
-                    self.args, "image_axes", (None, None)
+                    self.args, "image_axes", (None, None, None)
                 )
 
                 widgets_valid(
@@ -398,7 +398,7 @@ def plugin_wrapper_mtrack():
                         plugin.axes.tooltip = ""
 
             def _n_tiles(valid):
-                n_tiles, image, err = getattr(self.args, "n_tiles", (1, 1))
+                n_tiles, image, err = getattr(self.args, "n_tiles", (1, 1, 1))
                 widgets_valid(plugin.n_tiles, valid=(valid or image is None))
                 if valid:
                     plugin.n_tiles.tooltip = "\n".join(
