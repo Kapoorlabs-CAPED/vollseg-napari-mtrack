@@ -369,7 +369,7 @@ def plugin_wrapper_mtrack():
 
             def _image_axes(valid):
                 axes, image, err = getattr(
-                    self.args, "image_axes", (None, None, None)
+                    self.args, "image_axes", (None, None)
                 )
 
                 widgets_valid(
