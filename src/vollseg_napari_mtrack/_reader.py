@@ -61,7 +61,7 @@ def reader_function(path):
         else:
             print(f"ignoring the file {fname} as it is not a valid image file")
 
-    add_kwargs = {"file_names": names}
+    add_kwargs = {}
 
     layer_type = "image"
 
