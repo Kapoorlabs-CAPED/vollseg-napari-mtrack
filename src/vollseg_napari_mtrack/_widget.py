@@ -271,7 +271,7 @@ def plugin_wrapper_mtrack():
 
             def progress_thread(current_time):
 
-                progress_bar.label = "VollSeg Prediction (files)"
+                progress_bar.label = "Segmenting Kymographs (files)"
                 progress_bar.range = (0, n_frames)
                 progress_bar.value = current_time + 1
                 progress_bar.show()
@@ -295,7 +295,7 @@ def plugin_wrapper_mtrack():
 
         progress_bar.hide()
 
-    plugin.label_head.value = '<br>Citation <tt><a href="https://doi.org/10.1038/s41598-018-37767-1" style="color:gray;">MTrack Sci Reports</a></tt>'
+    plugin.label_head.value = '<br>Citation <tt><a href="https://doi.org/10.1038/s41598-018-37767-1" style="color:gray;">MTrack Nature</a></tt>'
     plugin.label_head.native.setSizePolicy(
         QSizePolicy.MinimumExpanding, QSizePolicy.Fixed
     )
