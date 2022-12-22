@@ -76,7 +76,7 @@ def plugin_wrapper_mtrack():
     worker = None
     model_vollseg_configs = dict()
     model_selected_vollseg = None
-    model_selected_ransac = None
+
     PRETRAINED = UNET
     CUSTOM_VOLLSEG = "CUSTOM_VOLLSEG"
     vollseg_model_type_choices = [
@@ -98,6 +98,7 @@ def plugin_wrapper_mtrack():
         ransac_model_type=LinearFunction,
     )
 
+    model_selected_ransac = DEFAULTS_MODEL["ransac_model_type"]
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
@@ -256,8 +257,7 @@ def plugin_wrapper_mtrack():
         progress_bar.label = "Starting MTrack"
         if model_selected_vollseg is not None:
             vollseg_model = get_model_vollseg(*model_selected_vollseg)
-        if model_selected_ransac is not None:
-            ransac_model = get_model_ransac(model_selected_ransac)
+        ransac_model = get_model_ransac(model_selected_ransac)
         print(ransac_model)
         axes_out = None
         if vollseg_model is not None:
