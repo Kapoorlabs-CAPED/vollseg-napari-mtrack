@@ -509,15 +509,7 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.ransac_model_type, init=False)
     def _ransac_model_change():
 
-        selected = plugin_ransac_parameters.ransac_model_type.value
-        print(selected)
-        print(ransac_model_type_choices[0][0])
-        if selected == ransac_model_type_choices[0][0]:
-            key = ransac_model_type_choices[0][1]
-
-        if selected == ransac_model_type_choices[1][0]:
-            key = ransac_model_type_choices[1][1]
-
+        key = plugin_ransac_parameters.ransac_model_type.value
         select_model_ransac(key)
 
     @change_handler(plugin.vollseg_model_type, init=False)
