@@ -194,6 +194,11 @@ def plugin_wrapper_mtrack():
             value=f'<h5><a href=" {citation}"> MTrack: Automated Detection, Tracking, and Analysis of Dynamic Microtubules</a></h5>',
         ),
         image=dict(label="Input Image"),
+        axes=dict(
+            widget_type="LineEdit",
+            label="Image Axes",
+            value=DEFAULTS_MODEL["axes"],
+        ),
         vollseg_model_type=dict(
             widget_type="RadioButtons",
             label="VollSeg Model Type",
