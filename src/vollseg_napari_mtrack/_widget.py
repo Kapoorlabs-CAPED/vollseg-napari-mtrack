@@ -211,7 +211,7 @@ def plugin_wrapper_mtrack():
         model_vollseg_none=dict(
             widget_type="Label", visible=False, label="NOSEG"
         ),
-        model_folder=dict(
+        model_folder_vollseg=dict(
             widget_type="FileEdit",
             visible=False,
             label="Custom VollSeg",
@@ -238,7 +238,7 @@ def plugin_wrapper_mtrack():
         vollseg_model_type,
         model_vollseg,
         model_vollseg_none,
-        model_folder,
+        model_folder_vollseg,
         n_tiles,
         defaults_model_button,
         progress_bar: mw.ProgressBar,
@@ -264,7 +264,7 @@ def plugin_wrapper_mtrack():
     widget_for_vollseg_modeltype = {
         UNET: plugin.model_vollseg,
         "NOSEG": plugin.model_vollseg_none,
-        CUSTOM_VOLLSEG: plugin.model_folder,
+        CUSTOM_VOLLSEG: plugin.model_folder_vollseg,
     }
 
     tabs = QTabWidget()
@@ -345,7 +345,7 @@ def plugin_wrapper_mtrack():
             def _model(valid):
                 widgets_valid(
                     plugin.model_vollseg,
-                    plugin.model_folder.line_edit,
+                    plugin.model_folder_vollseg.line_edit,
                     valid=valid,
                 )
                 if valid:
@@ -355,10 +355,10 @@ def plugin_wrapper_mtrack():
                         "YXC"[-len(config_vollseg["unet_input_shape"]) :],
                     )
 
-                    plugin.model_folder.line_edit.tooltip = ""
+                    plugin.model_folder_vollseg.line_edit.tooltip = ""
                     return axes_vollseg, config_vollseg
                 else:
-                    plugin.model_folder.line_edit.tooltip = (
+                    plugin.model_folder_vollseg.line_edit.tooltip = (
                         "Invalid model directory"
                     )
 
@@ -459,7 +459,7 @@ def plugin_wrapper_mtrack():
                     widgets_valid(
                         plugin.image,
                         plugin.model_vollseg,
-                        plugin.model_folder.line_edit,
+                        plugin.model_folder_vollseg.line_edit,
                         valid=all_valid,
                     )
                     if all_valid:
@@ -519,7 +519,7 @@ def plugin_wrapper_mtrack():
         for w in {
             plugin.model_vollseg,
             plugin.model_vollseg_none,
-            plugin.model_folder,
+            plugin.model_folder_vollseg,
         } - {selected}:
             w.hide()
 
@@ -573,7 +573,7 @@ def plugin_wrapper_mtrack():
                 "Invalid model directory"
             )
 
-    @change_handler(plugin.model_folder, init=False)
+    @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
         path = Path(_path)
         key = CUSTOM_VOLLSEG, path
