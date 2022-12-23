@@ -380,8 +380,8 @@ def plugin_wrapper_mtrack():
 
             line_locations.append(
                 [
-                    [xarray[0], estimator.predict(xarray[0])],
-                    [xarray[-1], estimator.predict(xarray[-1])],
+                    [estimator.predict(xarray[0]), xarray[0]],
+                    [estimator.predict(xarray[-1]), xarray[-1]],
                 ]
             )
         name_remove = "Fits"
@@ -459,8 +459,8 @@ def plugin_wrapper_mtrack():
 
                 line_locations.append(
                     [
-                        [xarray[0], estimator.predict(xarray[0])],
-                        [xarray[-1], estimator.predict(xarray[-1])],
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
                     ]
                 )
             time_line_locations[i] = line_locations
@@ -468,9 +468,9 @@ def plugin_wrapper_mtrack():
     @thread_worker(connect={"returned": return_ransac_fits_time})
     def _Ransac_fits_time(ransac_model):
 
-        if isinstance(ransac_model, LinearFunction):
+        if ransac_model == LinearFunction:
             degree = 2
-        if isinstance(ransac_model, QuadraticFunction):
+        if ransac_model == QuadraticFunction:
             degree = 3
 
         for layer in list(plugin.viewer.value.layers):
