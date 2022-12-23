@@ -182,7 +182,7 @@ def plugin_wrapper_mtrack():
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=False,
-        call_button=True,
+        call_button=False,
     )
     def plugin_ransac_parameters(
         max_error,
@@ -194,29 +194,7 @@ def plugin_wrapper_mtrack():
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
-        ransac_model = get_model_ransac(model_selected_ransac)
-
-        ndim = len(plugin.image.value.data.shape)
-        if ndim == 3:
-
-            n_frames = plugin.image.value.data.shape[0]
-
-            def progress_thread(current_time):
-
-                progress_bar.label = "Fitting Function Fits (files)"
-                progress_bar.range = (0, n_frames)
-                progress_bar.value = current_time + 1
-                progress_bar.show()
-
-            worker = _Ransac_fits_time(ransac_model=ransac_model)
-            worker.returned.connect(return_ransac_fits_time)
-            worker.yielded.connect(progress_thread)
-            # Do Ransac in time
-        if ndim == 2:
-
-            # Do ransac on single image
-            worker = _Ransac_fits(ransac_model=ransac_model)
-            worker.returned.connect(return_ransac_fits)
+        return plugin_ransac_parameters
 
     kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
     citation = Path("https://doi.org/10.1038/s41598-018-37767-1")
@@ -297,6 +275,8 @@ def plugin_wrapper_mtrack():
             axes_out = list(vollseg_model._axes_out[:-1])
         scale_in_dict = dict(zip(axes, image.scale))
         scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
+        ransac_model = get_model_ransac(model_selected_ransac)
+
         if "T" in axes:
             t = axes_dict(axes)["T"]
             n_frames = x.shape[t]
@@ -304,6 +284,13 @@ def plugin_wrapper_mtrack():
             def progress_thread(current_time):
 
                 progress_bar.label = "Segmenting Kymographs (files)"
+                progress_bar.range = (0, n_frames)
+                progress_bar.value = current_time + 1
+                progress_bar.show()
+
+            def progress_thread_ransac(current_time):
+
+                progress_bar.label = "Fitting Function Fits (files)"
                 progress_bar.range = (0, n_frames)
                 progress_bar.value = current_time + 1
                 progress_bar.show()
@@ -321,9 +308,16 @@ def plugin_wrapper_mtrack():
             )
             worker.returned.connect(return_segment_unet_time)
             worker.yielded.connect(progress_thread)
+
+            worker = _Ransac_fits_time(ransac_model=ransac_model)
+            worker.returned.connect(return_ransac_fits_time)
+            worker.yielded.connect(progress_thread_ransac)
         else:
             worker = _Unet(vollseg_model, x, axes, scale_out)
             worker.returned.connect(return_segment_unet)
+
+            worker = _Ransac_fits(ransac_model=ransac_model)
+            worker.returned.connect(return_ransac_fits)
 
         progress_bar.hide()
 
@@ -408,7 +402,6 @@ def plugin_wrapper_mtrack():
 
     @thread_worker(connect={"returned": return_ransac_fits})
     def _Ransac_fits(ransac_model):
-        name_layer = "Skeleton"
 
         print("Model", ransac_model)
         if ransac_model == LinearFunction:
@@ -417,7 +410,7 @@ def plugin_wrapper_mtrack():
             degree = 3
 
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_layer):
+            if isinstance(layer, napari.layers.Labels):
                 # Get the numpy nd array
                 layer_data = layer.data
 
@@ -437,6 +430,7 @@ def plugin_wrapper_mtrack():
         layer_data, ransac_model, degree = pred
         time_estimators = {}
         time_segments = {}
+        time_line_locations = {}
         for i in range(layer_data.shape[0]):
 
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
@@ -459,15 +453,20 @@ def plugin_wrapper_mtrack():
             estimators, segments = ransac_result.extract_multiple_lines()
             time_estimators[i] = estimators
             time_segments[i] = segments
+
+            line_locations = []
             for estimator in estimators:
 
-                ypredict = []
-                for x in range(np.asarray(xarray).shape[0]):
-                    ypredict.append(estimator.predict(x))
+                line_locations.append(
+                    [
+                        [xarray[0], estimator.predict(xarray[0])],
+                        [xarray[-1], estimator.predict(xarray[-1])],
+                    ]
+                )
+            time_line_locations[i] = line_locations
 
     @thread_worker(connect={"returned": return_ransac_fits_time})
     def _Ransac_fits_time(ransac_model):
-        name_layer = "Skeleton"
 
         if isinstance(ransac_model, LinearFunction):
             degree = 2
@@ -475,7 +474,7 @@ def plugin_wrapper_mtrack():
             degree = 3
 
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_layer):
+            if isinstance(layer, napari.layers.Labels):
                 # Get the numpy nd array
                 layer_data = layer.data
 
