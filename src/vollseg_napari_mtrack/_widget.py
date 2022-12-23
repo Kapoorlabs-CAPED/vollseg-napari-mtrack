@@ -404,7 +404,7 @@ def plugin_wrapper_mtrack():
         non_zero_indices = list(zip(*np.where(layer_data > 0)))
         sorted_non_zero_indices = sorted(
             non_zero_indices,
-            key=lambda x: x[plugin_ransac_parameters.time_axis],
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
         )
         yarray, xarray = zip(*sorted_non_zero_indices)
 
@@ -422,7 +422,7 @@ def plugin_wrapper_mtrack():
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
             sorted_non_zero_indices = sorted(
                 non_zero_indices,
-                key=lambda x: x[plugin_ransac_parameters.time_axis],
+                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
             )
             yarray, xarray = zip(*sorted_non_zero_indices)
 
@@ -839,6 +839,10 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.minimum_height)
     def _minimum_height(value: float):
         plugin_ransac_parameters.minimum_height.value = value
+
+    @change_handler(plugin_ransac_parameters.time_axis)
+    def _time_axis(value: int):
+        plugin_ransac_parameters.time_axis.value = value
 
     @change_handler(plugin_ransac_parameters.defaults_params_button)
     def restore_prediction_parameters_defaults():
