@@ -149,7 +149,7 @@ def plugin_wrapper_mtrack():
             value=DEFAULTS_PRED_PARAMETERS["max_error"],
         ),
         min_num_time_points=dict(
-            widget_type="FloatSpinBox",
+            widget_type="SpinBox",
             label="Minimum number of timepoints",
             min=0.0,
             step=5,
@@ -832,11 +832,11 @@ def plugin_wrapper_mtrack():
         plugin_ransac_parameters.max_error.value = value
 
     @change_handler(plugin_ransac_parameters.min_num_time_points)
-    def _min_num_time_points(value: float):
+    def _min_num_time_points(value: int):
         plugin_ransac_parameters.min_num_time_points.value = value
 
     @change_handler(plugin_ransac_parameters.minimum_height)
-    def _minimum_height(value: float):
+    def _minimum_height(value: int):
         plugin_ransac_parameters.minimum_height.value = value
 
     @change_handler(plugin_ransac_parameters.time_axis)
