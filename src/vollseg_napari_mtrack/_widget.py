@@ -196,10 +196,10 @@ def plugin_wrapper_mtrack():
 
         ransac_model = get_model_ransac(model_selected_ransac)
 
-        ndim = len(plugin.image.data.shape)
+        ndim = len(plugin.image.value.data.shape)
         if ndim == 3:
 
-            n_frames = plugin.image.data.shape[0]
+            n_frames = plugin.image.value.data.shape[0]
 
             def progress_thread(current_time):
 
@@ -266,7 +266,7 @@ def plugin_wrapper_mtrack():
         ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
-        persist=True,
+        persist=False,
         call_button=True,
     )
     def plugin(
@@ -356,7 +356,9 @@ def plugin_wrapper_mtrack():
 
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove):
+            if any(name in layer.name for name in name_remove) and isinstance(
+                layer, napari.layers.Label
+            ):
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
@@ -468,7 +470,9 @@ def plugin_wrapper_mtrack():
         unet_mask, skeleton, denoised_image = res
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove):
+            if any(name in layer.name for name in name_remove) and isinstance(
+                layer, napari.layers.Label
+            ):
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
