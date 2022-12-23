@@ -105,7 +105,7 @@ def plugin_wrapper_mtrack():
 
     DEFAULTS_PRED_PARAMETERS = dict(
         max_error=2,
-        min_num_time_points=20,
+        min_num_time_points=2,
         minimum_height=4,
         time_axis=1,
     )
