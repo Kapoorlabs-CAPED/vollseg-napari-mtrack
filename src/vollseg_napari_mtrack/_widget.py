@@ -357,7 +357,7 @@ def plugin_wrapper_mtrack():
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Label
+                layer, napari.layers.Labels
             ):
                 plugin.viewer.value.layers.remove(layer)
 
@@ -471,7 +471,7 @@ def plugin_wrapper_mtrack():
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Label
+                layer, napari.layers.Labels
             ):
                 plugin.viewer.value.layers.remove(layer)
 
