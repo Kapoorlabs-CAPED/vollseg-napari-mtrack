@@ -404,7 +404,7 @@ def plugin_wrapper_mtrack():
         non_zero_indices = list(zip(*np.where(layer_data > 0)))
         sorted_non_zero_indices = sorted(
             non_zero_indices,
-            keys=lambda x: x[plugin_ransac_parameters.time_axis],
+            key=lambda x: x[plugin_ransac_parameters.time_axis],
         )
         yarray, xarray = zip(*sorted_non_zero_indices)
 
@@ -422,7 +422,7 @@ def plugin_wrapper_mtrack():
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
             sorted_non_zero_indices = sorted(
                 non_zero_indices,
-                keys=lambda x: x[plugin_ransac_parameters.time_axis],
+                key=lambda x: x[plugin_ransac_parameters.time_axis],
             )
             yarray, xarray = zip(*sorted_non_zero_indices)
 
