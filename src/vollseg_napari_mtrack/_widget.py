@@ -304,20 +304,20 @@ def plugin_wrapper_mtrack():
             scale_in_dict = dict(zip(axes, image.scale))
             scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
             worker = _Unet_time(
-                vollseg_model, x_reorder, axes_reorder, scale_out, t, x
+                vollseg_model,
+                x_reorder,
+                axes_reorder,
+                scale_out,
+                t,
+                x,
+                ransac_model,
             )
             worker.returned.connect(return_segment_unet_time)
             worker.yielded.connect(progress_thread)
-            worker.await_workers()
-            worker = _Ransac_fits_time(ransac_model=ransac_model)
-            worker.returned.connect(return_ransac_fits_time)
-            worker.yielded.connect(progress_thread_ransac)
+
         else:
-            worker = _Unet(vollseg_model, x, axes, scale_out)
+            worker = _Unet(vollseg_model, x, axes, scale_out, ransac_model)
             worker.returned.connect(return_segment_unet)
-            worker.await_workers()
-            worker = _Ransac_fits(ransac_model=ransac_model)
-            worker.returned.connect(return_ransac_fits)
 
         progress_bar.hide()
 
@@ -328,7 +328,7 @@ def plugin_wrapper_mtrack():
 
     def return_segment_unet_time(pred):
 
-        res, scale_out, t, x = pred
+        res, scale_out, t, x, ransac_model = pred
         unet_mask, skeleton, denoised_image = zip(*res)
 
         unet_mask = np.asarray(unet_mask)
@@ -359,9 +359,94 @@ def plugin_wrapper_mtrack():
             unet_mask, name="Skeleton", scale=scale_out, opacity=0.5
         )
 
-    def return_ransac_fits(pred):
+        print("Model", ransac_model)
+        if ransac_model == LinearFunction:
+            degree = 2
+        if ransac_model == QuadraticFunction:
+            degree = 3
 
-        sorted_non_zero_indices, xarray, ransac_model, degree = pred
+        for layer in list(plugin.viewer.value.layers):
+            if isinstance(layer, napari.layers.Labels):
+                # Get the numpy nd array
+                layer_data = layer.data
+
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        time_estimators = {}
+        time_segments = {}
+        time_line_locations = {}
+        for i in range(layer_data.shape[0]):
+
+            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
+            sorted_non_zero_indices = sorted(
+                non_zero_indices,
+                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+            )
+            yarray, xarray = zip(*sorted_non_zero_indices)
+
+            ransac_result = Ransac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=10000,
+                iterations=10,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
+            estimators, segments = ransac_result.extract_multiple_lines()
+            time_estimators[i] = estimators
+            time_segments[i] = segments
+
+            line_locations = []
+            for estimator in estimators:
+
+                line_locations.append(
+                    [
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
+            time_line_locations[i] = line_locations
+
+    def return_segment_unet(pred):
+
+        res, scale_out, ransac_model = pred
+        unet_mask, skeleton, denoised_image = res
+        name_remove = "Skeleton"
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_remove) and isinstance(
+                layer, napari.layers.Labels
+            ):
+                plugin.viewer.value.layers.remove(layer)
+
+        plugin.viewer.value.add_labels(
+            thin(unet_mask), name="Skeleton", scale=scale_out, opacity=0.5
+        )
+
+        print("Model", ransac_model)
+        if ransac_model == LinearFunction:
+            degree = 2
+        if ransac_model == QuadraticFunction:
+            degree = 3
+
+        for layer in list(plugin.viewer.value.layers):
+            if isinstance(layer, napari.layers.Labels):
+                # Get the numpy nd array
+                layer_data = layer.data
+
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
         ransac_result = Ransac(
             sorted_non_zero_indices,
             ransac_model,
@@ -400,105 +485,10 @@ def plugin_wrapper_mtrack():
             edge_width=2,
         )
 
-    @thread_worker(connect={"returned": return_ransac_fits})
-    def _Ransac_fits(ransac_model):
-
-        print("Model", ransac_model)
-        if ransac_model == LinearFunction:
-            degree = 2
-        if ransac_model == QuadraticFunction:
-            degree = 3
-
-        for layer in list(plugin.viewer.value.layers):
-            if isinstance(layer, napari.layers.Labels):
-                # Get the numpy nd array
-                layer_data = layer.data
-
-        non_zero_indices = list(zip(*np.where(layer_data > 0)))
-        sorted_non_zero_indices = sorted(
-            non_zero_indices,
-            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-        )
-        yarray, xarray = zip(*sorted_non_zero_indices)
-
-        pred = sorted_non_zero_indices, xarray, ransac_model, degree
-
-        return pred
-
-    def return_ransac_fits_time(pred):
-
-        layer_data, ransac_model, degree = pred
-        time_estimators = {}
-        time_segments = {}
-        time_line_locations = {}
-        for i in range(layer_data.shape[0]):
-
-            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
-            sorted_non_zero_indices = sorted(
-                non_zero_indices,
-                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-            )
-            yarray, xarray = zip(*sorted_non_zero_indices)
-
-            ransac_result = Ransac(
-                sorted_non_zero_indices,
-                ransac_model,
-                degree,
-                min_samples=plugin_ransac_parameters.min_num_time_points.value,
-                max_trials=10000,
-                iterations=10,
-                residual_threshold=plugin_ransac_parameters.max_error.value,
-                save_name="",
-            )
-            estimators, segments = ransac_result.extract_multiple_lines()
-            time_estimators[i] = estimators
-            time_segments[i] = segments
-
-            line_locations = []
-            for estimator in estimators:
-
-                line_locations.append(
-                    [
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
-                    ]
-                )
-            time_line_locations[i] = line_locations
-
-    @thread_worker(connect={"returned": return_ransac_fits_time})
-    def _Ransac_fits_time(ransac_model):
-
-        if ransac_model == LinearFunction:
-            degree = 2
-        if ransac_model == QuadraticFunction:
-            degree = 3
-
-        for layer in list(plugin.viewer.value.layers):
-            if isinstance(layer, napari.layers.Labels):
-                # Get the numpy nd array
-                layer_data = layer.data
-
-        pred = layer_data, ransac_model, degree
-
-        return pred
-
-    def return_segment_unet(pred):
-
-        res, scale_out = pred
-        unet_mask, skeleton, denoised_image = res
-        name_remove = "Skeleton"
-        for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Labels
-            ):
-                plugin.viewer.value.layers.remove(layer)
-
-        plugin.viewer.value.add_labels(
-            thin(unet_mask), name="Skeleton", scale=scale_out, opacity=0.5
-        )
-
     @thread_worker(connect={"returned": return_segment_unet_time})
-    def _Unet_time(model_unet, x_reorder, axes_reorder, scale_out, t, x):
+    def _Unet_time(
+        model_unet, x_reorder, axes_reorder, scale_out, t, x, ransac_model
+    ):
         pre_res = []
         for count, _x in enumerate(x_reorder):
 
@@ -512,11 +502,11 @@ def plugin_wrapper_mtrack():
                 )
             )
 
-        pred = pre_res, scale_out, t, x
+        pred = pre_res, scale_out, t, x, ransac_model
         return pred
 
     @thread_worker(connect={"returned": return_segment_unet})
-    def _Unet(model_unet, x, axes, scale_out):
+    def _Unet(model_unet, x, axes, scale_out, ransac_model):
 
         res = VollSeg(
             x,
@@ -525,7 +515,7 @@ def plugin_wrapper_mtrack():
             axes=axes,
         )
 
-        pred = res, scale_out
+        pred = res, scale_out, ransac_model
         return pred
 
     widget_for_vollseg_modeltype = {
