@@ -372,10 +372,10 @@ def plugin_wrapper_mtrack():
             sorted_non_zero_indices,
             ransac_model,
             degree,
-            min_samples=plugin_ransac_parameters.min_num_time_points,
+            min_samples=plugin_ransac_parameters.min_num_time_points.value,
             max_trials=10000,
             iterations=10,
-            residual_threshold=plugin_ransac_parameters.max_error,
+            residual_threshold=plugin_ransac_parameters.max_error.value,
             save_name="",
         )
 
@@ -430,11 +430,10 @@ def plugin_wrapper_mtrack():
                 sorted_non_zero_indices,
                 ransac_model,
                 degree,
-                min_samples=plugin_ransac_parameters.min_,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
                 max_trials=10000,
                 iterations=10,
-                residual_threshold=0.01,
-                max_distance=plugin_ransac_parameters.max_distance,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
                 save_name="",
             )
             estimators, segments = ransac_result.extract_multiple_lines()
