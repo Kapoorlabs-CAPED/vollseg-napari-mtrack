@@ -266,7 +266,7 @@ def plugin_wrapper_mtrack():
         ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
-        persist=False,
+        persist=True,
         call_button=True,
     )
     def plugin(
