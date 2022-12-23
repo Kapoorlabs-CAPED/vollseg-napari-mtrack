@@ -20,6 +20,7 @@ from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
 
 def plugin_wrapper_mtrack():
 
+    from caped_ai_mtrack.Fits import Ransac
     from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
     from skimage.morphology import thin
@@ -106,6 +107,7 @@ def plugin_wrapper_mtrack():
         max_error=2,
         min_num_time_points=20,
         minimum_height=4,
+        time_axis=1,
     )
 
     def get_model_ransac(ransac_model_type):
@@ -160,6 +162,13 @@ def plugin_wrapper_mtrack():
             step=1,
             value=DEFAULTS_PRED_PARAMETERS["minimum_height"],
         ),
+        time_axis=dict(
+            widget_type="SpinBox",
+            label="Kymograph time axis (0 for along y, 1 for along x)",
+            min=0,
+            step=1,
+            value=DEFAULTS_PRED_PARAMETERS["time_axis"],
+        ),
         ransac_model_type=dict(
             widget_type="RadioButtons",
             label="Ransac Model Type",
@@ -179,12 +188,35 @@ def plugin_wrapper_mtrack():
         max_error,
         min_num_time_points,
         minimum_height,
+        time_axis,
         ransac_model_type,
         defaults_params_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
-        return plugin_ransac_parameters
+        ransac_model = get_model_ransac(model_selected_ransac)
+
+        ndim = len(plugin.image.data.shape)
+        if ndim == 3:
+
+            n_frames = plugin.image.data.shape[0]
+
+            def progress_thread(current_time):
+
+                progress_bar.label = "Fitting Function Fits (files)"
+                progress_bar.range = (0, n_frames)
+                progress_bar.value = current_time + 1
+                progress_bar.show()
+
+            worker = _Ransac_fits_time(ransac_model=ransac_model)
+            worker.returned.connect(return_ransac_fits_time)
+            worker.yielded.connect(progress_thread)
+            # Do Ransac in time
+        if ndim == 2:
+
+            # Do ransac on single image
+            worker = _Ransac_fits(ransac_model=ransac_model)
+            worker.returned.connect(return_ransac_fits)
 
     kapoorlogo = abspath(__file__, "resources/kapoorlogo.png")
     citation = Path("https://doi.org/10.1038/s41598-018-37767-1")
@@ -258,8 +290,7 @@ def plugin_wrapper_mtrack():
         progress_bar.label = "Starting MTrack"
         if model_selected_vollseg is not None:
             vollseg_model = get_model_vollseg(*model_selected_vollseg)
-        ransac_model = get_model_ransac(model_selected_ransac)
-        print(ransac_model)
+
         axes_out = None
         if vollseg_model is not None:
             assert vollseg_model._axes_out[-1] == "C"
@@ -331,6 +362,105 @@ def plugin_wrapper_mtrack():
         plugin.viewer.value.add_labels(
             unet_mask, name="Skeleton", scale=scale_out, opacity=0.5
         )
+
+    def return_ransac_fits(pred):
+
+        sorted_non_zero_indices, xarray, ransac_model, degree = pred
+        ransac_result = Ransac(
+            sorted_non_zero_indices,
+            ransac_model,
+            degree,
+            min_samples=plugin_ransac_parameters.min_samples,
+            max_trials=10000,
+            iterations=10,
+            residual_threshold=0.01,
+            max_distance=plugin_ransac_parameters.max_distance,
+            save_name="",
+        )
+
+        estimators, segments = ransac_result.extract_multiple_lines()
+        for estimator in estimators:
+
+            ypredict = []
+            for x in range(np.asarray(xarray).shape[0]):
+                ypredict.append(estimator.predict(x))
+
+    @thread_worker(connect={"returned": return_ransac_fits})
+    def _Ransac_fits(ransac_model):
+        name_layer = "Skeleton"
+
+        if isinstance(ransac_model, LinearFunction):
+            degree = 2
+        if isinstance(ransac_model, QuadraticFunction):
+            degree = 3
+
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_layer):
+                # Get the numpy nd array
+                layer_data = layer.data
+
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            keys=lambda x: x[plugin_ransac_parameters.time_axis],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        pred = sorted_non_zero_indices, xarray, ransac_model, degree
+
+        return pred
+
+    def return_ransac_fits_time(pred):
+
+        layer_data, ransac_model, degree = pred
+        time_estimators = {}
+        time_segments = {}
+        for i in range(layer_data.shape[0]):
+
+            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
+            sorted_non_zero_indices = sorted(
+                non_zero_indices,
+                keys=lambda x: x[plugin_ransac_parameters.time_axis],
+            )
+            yarray, xarray = zip(*sorted_non_zero_indices)
+
+            ransac_result = Ransac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_samples,
+                max_trials=10000,
+                iterations=10,
+                residual_threshold=0.01,
+                max_distance=plugin_ransac_parameters.max_distance,
+                save_name="",
+            )
+            estimators, segments = ransac_result.extract_multiple_lines()
+            time_estimators[i] = estimators
+            time_segments[i] = segments
+            for estimator in estimators:
+
+                ypredict = []
+                for x in range(np.asarray(xarray).shape[0]):
+                    ypredict.append(estimator.predict(x))
+
+    @thread_worker(connect={"returned": return_ransac_fits_time})
+    def _Ransac_fits_time(ransac_model):
+        name_layer = "Skeleton"
+
+        if isinstance(ransac_model, LinearFunction):
+            degree = 2
+        if isinstance(ransac_model, QuadraticFunction):
+            degree = 3
+
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_layer):
+                # Get the numpy nd array
+                layer_data = layer.data
+
+        pred = layer_data, ransac_model, degree
+
+        return pred
 
     def return_segment_unet(pred):
 
@@ -407,7 +537,6 @@ def plugin_wrapper_mtrack():
     def select_model_ransac(key):
         nonlocal model_selected_ransac
         model_selected_ransac = key
-        print(model_selected_ransac)
 
     def widgets_inactive(*widgets, active):
         for widget in widgets:
