@@ -380,11 +380,31 @@ def plugin_wrapper_mtrack():
         )
 
         estimators, segments = ransac_result.extract_multiple_lines()
+
+        line_locations = []
         for estimator in estimators:
 
-            ypredict = []
-            for x in range(np.asarray(xarray).shape[0]):
-                ypredict.append(estimator.predict(x))
+            line_locations.append(
+                [
+                    [xarray[0], estimator.predict(xarray[0])],
+                    [xarray[-1], estimator.predict(xarray[-1])],
+                ]
+            )
+        name_remove = "Fits"
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_remove) and isinstance(
+                layer, napari.layers.Shapes
+            ):
+                plugin.viewer.value.layers.remove(layer)
+
+        plugin.viewer.value.add_shapes(
+            np.asarray(line_locations),
+            name="Fits",
+            shape_type="line",
+            face_color=[0] * 4,
+            edge_color="red",
+            edge_width=2,
+        )
 
     @thread_worker(connect={"returned": return_ransac_fits})
     def _Ransac_fits(ransac_model):
