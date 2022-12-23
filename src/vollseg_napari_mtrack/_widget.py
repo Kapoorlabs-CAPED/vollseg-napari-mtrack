@@ -375,8 +375,7 @@ def plugin_wrapper_mtrack():
             min_samples=plugin_ransac_parameters.min_num_time_points,
             max_trials=10000,
             iterations=10,
-            residual_threshold=0.01,
-            max_distance=plugin_ransac_parameters.max_distance,
+            residual_threshold=plugin_ransac_parameters.max_error,
             save_name="",
         )
 
