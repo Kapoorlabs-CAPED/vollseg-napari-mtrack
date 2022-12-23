@@ -391,6 +391,7 @@ def plugin_wrapper_mtrack():
     def _Ransac_fits(ransac_model):
         name_layer = "Skeleton"
 
+        print("Model", ransac_model)
         if isinstance(ransac_model, LinearFunction):
             degree = 2
         if isinstance(ransac_model, QuadraticFunction):
