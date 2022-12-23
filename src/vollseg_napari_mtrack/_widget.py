@@ -392,9 +392,9 @@ def plugin_wrapper_mtrack():
         name_layer = "Skeleton"
 
         print("Model", ransac_model)
-        if isinstance(ransac_model, LinearFunction):
+        if ransac_model == LinearFunction:
             degree = 2
-        if isinstance(ransac_model, QuadraticFunction):
+        if ransac_model == QuadraticFunction:
             degree = 3
 
         for layer in list(plugin.viewer.value.layers):
