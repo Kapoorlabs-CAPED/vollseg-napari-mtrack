@@ -308,14 +308,14 @@ def plugin_wrapper_mtrack():
             )
             worker.returned.connect(return_segment_unet_time)
             worker.yielded.connect(progress_thread)
-
+            time.sleep(secs=5)
             worker = _Ransac_fits_time(ransac_model=ransac_model)
             worker.returned.connect(return_ransac_fits_time)
             worker.yielded.connect(progress_thread_ransac)
         else:
             worker = _Unet(vollseg_model, x, axes, scale_out)
             worker.returned.connect(return_segment_unet)
-
+            time.sleep(secs=5)
             worker = _Ransac_fits(ransac_model=ransac_model)
             worker.returned.connect(return_ransac_fits)
 
