@@ -55,7 +55,7 @@ def reader_function(path):
                 if len(image.shape) == 3:
                     image = image[0]
                 image = np.pad(
-                    image, (0, int(max_y)), (0, int(max_x)), mode="constant"
+                    image, ((0, int(max_y)), (0, int(max_x))), mode="constant"
                 )
                 images.append(image)
                 names.append(os.path.splitext(os.path.basename(fname))[0])
