@@ -352,6 +352,7 @@ def plugin_wrapper_mtrack():
             name="Fits",
             shape_type="line",
             face_color=[0] * 4,
+            edge_color="red",
             edge_width=1,
         )
 
@@ -380,6 +381,7 @@ def plugin_wrapper_mtrack():
             name="Fits",
             shape_type="line",
             face_color=[0] * 4,
+            edge_color="red",
             edge_width=1,
         )
 
