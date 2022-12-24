@@ -54,10 +54,11 @@ def reader_function(path):
                 image = imread(os.path.join(path, fname))
                 if len(image.shape) == 3:
                     image = image[0]
-                print(image.shape)
+
                 image = np.pad(
                     image, ((0, int(max_y)), (0, int(max_x))), mode="constant"
                 )
+                print(image.shape)
                 images.append(image)
                 names.append(os.path.splitext(os.path.basename(fname))[0])
         images_array = np.array(images)
