@@ -283,7 +283,7 @@ def plugin_wrapper_mtrack():
 
             def progress_thread(current_time):
 
-                progress_bar.label = "Segmenting Kymographs (files)"
+                progress_bar.label = "Fitting Functions (files)"
                 progress_bar.range = (0, n_frames)
                 progress_bar.value = current_time + 1
                 progress_bar.show()
@@ -328,7 +328,7 @@ def plugin_wrapper_mtrack():
 
     def return_segment_unet_time(pred):
 
-        layer_data, scale_out = pred
+        layer_data, time_line_locations, scale_out = pred
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
@@ -338,6 +338,21 @@ def plugin_wrapper_mtrack():
 
         plugin.viewer.value.add_labels(
             layer_data, name="Skeleton", scale=scale_out, opacity=0.5
+        )
+
+        name_remove = "Fits"
+        for layer in list(plugin.viewer.value.layers):
+            if any(name in layer.name for name in name_remove) and isinstance(
+                layer, napari.layers.Shapes
+            ):
+                plugin.viewer.value.layers.remove(layer)
+
+        plugin.viewer.value.add_shapes(
+            np.asarray(time_line_locations),
+            name="Fits",
+            shape_type="line",
+            face_color=[0] * 4,
+            edge_width=1,
         )
 
     def return_segment_unet(pred):
@@ -365,8 +380,7 @@ def plugin_wrapper_mtrack():
             name="Fits",
             shape_type="line",
             face_color=[0] * 4,
-            edge_color="red",
-            edge_width=2,
+            edge_width=1,
         )
 
     @thread_worker(connect={"returned": return_segment_unet_time})
@@ -385,8 +399,6 @@ def plugin_wrapper_mtrack():
                     axes=axes_reorder,
                 )
             )
-
-        pred = pre_res, scale_out, t, x, ransac_model
 
         unet_mask, skeleton, denoised_image = zip(*pre_res)
 
@@ -423,7 +435,7 @@ def plugin_wrapper_mtrack():
 
         time_estimators = {}
         time_estimator_inliers = {}
-        time_line_locations = {}
+        time_line_locations = []
         for i in range(layer_data.shape[0]):
 
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
@@ -465,8 +477,15 @@ def plugin_wrapper_mtrack():
                         [estimator.predict(xarray[-1]), xarray[-1]],
                     ]
                 )
-            time_line_locations[i] = line_locations
+                time_line_locations.append(
+                    [
+                        i,
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
 
+        pred = layer_data, time_line_locations, scale_out
         return pred
 
     @thread_worker(connect={"returned": return_segment_unet})
