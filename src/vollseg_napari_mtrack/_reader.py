@@ -54,6 +54,7 @@ def reader_function(path):
                 image = imread(os.path.join(path, fname))
                 if len(image.shape) == 3:
                     image = image[0]
+                print(image.shape)
                 image = np.pad(
                     image, ((0, int(max_y)), (0, int(max_x))), mode="constant"
                 )
@@ -64,6 +65,8 @@ def reader_function(path):
     elif os.path.isfile(path):
         if any(fname.endswith(f) for f in acceptable_formats):
             images_array = imread(path)
+            if len(images_array.shape) == 3:
+                images_array = images_array[0]
         else:
             print(f"ignoring the file {fname} as it is not a valid image file")
 
