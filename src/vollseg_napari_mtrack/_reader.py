@@ -56,7 +56,12 @@ def reader_function(path):
                     image = image[0]
 
                 image = np.pad(
-                    image, ((0, int(max_y)), (0, int(max_x))), mode="constant"
+                    image,
+                    (
+                        (0, int(max_y) - image.shape[0]),
+                        (0, int(max_x) - image.shape[1]),
+                    ),
+                    mode="constant",
                 )
                 print(image.shape)
                 images.append(image)
