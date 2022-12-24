@@ -388,6 +388,7 @@ def plugin_wrapper_mtrack():
         model_unet, x_reorder, axes_reorder, scale_out, t, x, ransac_model
     ):
         pre_res = []
+        yield 0
         for count, _x in enumerate(x_reorder):
 
             pre_res.append(
@@ -457,7 +458,7 @@ def plugin_wrapper_mtrack():
             line_locations = []
             for j in range(len(estimators)):
 
-                estimator = estimators[i]
+                estimator = estimators[j]
                 estimator_inlier = estimator_inliers[j]
                 estimator_inliers_list = np.copy(estimator_inlier)
                 yarray, xarray = zip(*estimator_inliers_list.tolist())
