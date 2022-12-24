@@ -145,7 +145,7 @@ def plugin_wrapper_mtrack():
             widget_type="FloatSpinBox",
             label="Max error",
             min=0.0,
-            step=5,
+            step=0.05,
             value=DEFAULTS_PRED_PARAMETERS["max_error"],
         ),
         min_num_time_points=dict(

@@ -40,6 +40,8 @@ def reader_function(path):
         for fname in os.listdir(path):
             if any(fname.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, fname))
+                if len(image.shape) == 3:
+                    image = image[0]
                 max_x = max(max_x, image.shape[1])
                 max_y = max(max_y, image.shape[0])
             else:
@@ -50,7 +52,11 @@ def reader_function(path):
         for fname in os.listdir(path):
             if any(fname.endswith(f) for f in acceptable_formats):
                 image = imread(os.path.join(path, fname))
-                image = np.resize(image, (int(max_y), int(max_x)))
+                if len(image.shape) == 3:
+                    image = image[0]
+                image = np.pad(
+                    image, (0, int(max_y)), (0, int(max_x)), mode="constant"
+                )
                 images.append(image)
                 names.append(os.path.splitext(os.path.basename(fname))[0])
         images_array = np.array(images)
