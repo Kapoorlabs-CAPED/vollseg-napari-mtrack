@@ -61,7 +61,7 @@ def reader_function(path):
                         (0, int(max_y) - image.shape[0]),
                         (0, int(max_x) - image.shape[1]),
                     ),
-                    mode="constant",
+                    mode="edge",
                 )
                 print(image.shape)
                 images.append(image)
