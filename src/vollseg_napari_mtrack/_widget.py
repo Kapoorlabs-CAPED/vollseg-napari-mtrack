@@ -390,7 +390,6 @@ def plugin_wrapper_mtrack():
         pre_res = []
         for count, _x in enumerate(x_reorder):
 
-            yield count
             pre_res.append(
                 VollSeg(
                     _x,
@@ -429,8 +428,8 @@ def plugin_wrapper_mtrack():
         time_estimators = {}
         time_estimator_inliers = {}
         time_line_locations = []
-        for i in range(layer_data.shape[0]):
-
+        for count, i in enumerate(range(layer_data.shape[0])):
+            yield count
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
             sorted_non_zero_indices = sorted(
                 non_zero_indices,
