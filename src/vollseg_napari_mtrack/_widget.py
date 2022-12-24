@@ -472,9 +472,8 @@ def plugin_wrapper_mtrack():
                 )
                 time_line_locations.append(
                     [
-                        [i, i],
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
+                        [i, estimator.predict(xarray[0]), xarray[0]],
+                        [i, estimator.predict(xarray[-1]), xarray[-1]],
                     ]
                 )
 
