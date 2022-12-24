@@ -104,7 +104,7 @@ def plugin_wrapper_mtrack():
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
-        max_error=2,
+        max_error=0.1,
         min_num_time_points=2,
         minimum_height=4,
         time_axis=1,
@@ -328,26 +328,7 @@ def plugin_wrapper_mtrack():
 
     def return_segment_unet_time(pred):
 
-        res, scale_out, t, x, ransac_model = pred
-        unet_mask, skeleton, denoised_image = zip(*res)
-
-        unet_mask = np.asarray(unet_mask)
-
-        unet_mask = unet_mask > 0
-        unet_mask = np.moveaxis(unet_mask, 0, t)
-        unet_mask = np.reshape(unet_mask, x.shape)
-        for i in range(unet_mask.shape[0]):
-            unet_mask[i] = thin(unet_mask[i])
-
-        skeleton = np.asarray(skeleton)
-        skeleton = skeleton > 0
-        skeleton = np.moveaxis(skeleton, 0, t)
-        skeleton = np.reshape(skeleton, x.shape)
-
-        denoised_image = np.asarray(denoised_image)
-        denoised_image = np.moveaxis(denoised_image, 0, t)
-        denoised_image = np.reshape(denoised_image, x.shape)
-
+        layer_data, scale_out = pred
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
@@ -356,68 +337,12 @@ def plugin_wrapper_mtrack():
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
-            unet_mask, name="Skeleton", scale=scale_out, opacity=0.5
+            layer_data, name="Skeleton", scale=scale_out, opacity=0.5
         )
-
-        print("Model", ransac_model)
-        if ransac_model == LinearFunction:
-            degree = 2
-        if ransac_model == QuadraticFunction:
-            degree = 3
-
-        for layer in list(plugin.viewer.value.layers):
-            if isinstance(layer, napari.layers.Labels):
-                # Get the numpy nd array
-                layer_data = layer.data
-
-        non_zero_indices = list(zip(*np.where(layer_data > 0)))
-        sorted_non_zero_indices = sorted(
-            non_zero_indices,
-            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-        )
-        yarray, xarray = zip(*sorted_non_zero_indices)
-
-        time_estimators = {}
-        time_segments = {}
-        time_line_locations = {}
-        for i in range(layer_data.shape[0]):
-
-            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
-            sorted_non_zero_indices = sorted(
-                non_zero_indices,
-                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-            )
-            yarray, xarray = zip(*sorted_non_zero_indices)
-
-            ransac_result = Ransac(
-                sorted_non_zero_indices,
-                ransac_model,
-                degree,
-                min_samples=plugin_ransac_parameters.min_num_time_points.value,
-                max_trials=10000,
-                iterations=10,
-                residual_threshold=plugin_ransac_parameters.max_error.value,
-                save_name="",
-            )
-            estimators, segments = ransac_result.extract_multiple_lines()
-            time_estimators[i] = estimators
-            time_segments[i] = segments
-
-            line_locations = []
-            for estimator in estimators:
-
-                line_locations.append(
-                    [
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
-                    ]
-                )
-            time_line_locations[i] = line_locations
 
     def return_segment_unet(pred):
 
-        res, scale_out, ransac_model = pred
-        unet_mask, skeleton, denoised_image = res
+        layer_data, line_locations, scale_out = pred
         name_remove = "Skeleton"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
@@ -426,49 +351,8 @@ def plugin_wrapper_mtrack():
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(
-            thin(unet_mask), name="Skeleton", scale=scale_out, opacity=0.5
+            layer_data, name="Skeleton", scale=scale_out, opacity=0.5
         )
-
-        print("Model", ransac_model)
-        if ransac_model == LinearFunction:
-            degree = 2
-        if ransac_model == QuadraticFunction:
-            degree = 3
-
-        for layer in list(plugin.viewer.value.layers):
-            if isinstance(layer, napari.layers.Labels):
-                # Get the numpy nd array
-                layer_data = layer.data
-
-        non_zero_indices = list(zip(*np.where(layer_data > 0)))
-        sorted_non_zero_indices = sorted(
-            non_zero_indices,
-            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-        )
-        yarray, xarray = zip(*sorted_non_zero_indices)
-
-        ransac_result = Ransac(
-            sorted_non_zero_indices,
-            ransac_model,
-            degree,
-            min_samples=plugin_ransac_parameters.min_num_time_points.value,
-            max_trials=10000,
-            iterations=10,
-            residual_threshold=plugin_ransac_parameters.max_error.value,
-            save_name="",
-        )
-
-        estimators, segments = ransac_result.extract_multiple_lines()
-
-        line_locations = []
-        for estimator in estimators:
-
-            line_locations.append(
-                [
-                    [estimator.predict(xarray[0]), xarray[0]],
-                    [estimator.predict(xarray[-1]), xarray[-1]],
-                ]
-            )
         name_remove = "Fits"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
@@ -503,6 +387,86 @@ def plugin_wrapper_mtrack():
             )
 
         pred = pre_res, scale_out, t, x, ransac_model
+
+        unet_mask, skeleton, denoised_image = zip(*pre_res)
+
+        unet_mask = np.asarray(unet_mask)
+
+        unet_mask = unet_mask > 0
+        unet_mask = np.moveaxis(unet_mask, 0, t)
+        unet_mask = np.reshape(unet_mask, x.shape)
+        for i in range(unet_mask.shape[0]):
+            unet_mask[i] = thin(unet_mask[i])
+
+        skeleton = np.asarray(skeleton)
+        skeleton = skeleton > 0
+        skeleton = np.moveaxis(skeleton, 0, t)
+        skeleton = np.reshape(skeleton, x.shape)
+
+        denoised_image = np.asarray(denoised_image)
+        denoised_image = np.moveaxis(denoised_image, 0, t)
+        denoised_image = np.reshape(denoised_image, x.shape)
+
+        layer_data = unet_mask
+        print("Model", ransac_model)
+        if ransac_model == LinearFunction:
+            degree = 2
+        if ransac_model == QuadraticFunction:
+            degree = 3
+
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        time_estimators = {}
+        time_estimator_inliers = {}
+        time_line_locations = {}
+        for i in range(layer_data.shape[0]):
+
+            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
+            sorted_non_zero_indices = sorted(
+                non_zero_indices,
+                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+            )
+            yarray, xarray = zip(*sorted_non_zero_indices)
+
+            ransac_result = Ransac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=10000,
+                iterations=10,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
+            (
+                estimators,
+                estimator_inliers,
+            ) = ransac_result.extract_multiple_lines()
+            time_estimators[i] = estimators
+            time_estimator_inliers[i] = estimator_inliers
+
+            line_locations = []
+            for i in range(len(estimators)):
+
+                estimator = estimators[i]
+                estimator_inlier = estimator_inliers[i]
+                estimator_inliers_list = np.copy(estimator_inlier)
+                yarray, xarray = zip(*estimator_inliers_list.tolist())
+                yarray = np.asarray(yarray)
+                xarray = np.asarray(xarray)
+                line_locations.append(
+                    [
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
+            time_line_locations[i] = line_locations
+
         return pred
 
     @thread_worker(connect={"returned": return_segment_unet})
@@ -515,7 +479,52 @@ def plugin_wrapper_mtrack():
             axes=axes,
         )
 
-        pred = res, scale_out, ransac_model
+        unet_mask, skeleton, denoised_image = res
+
+        layer_data = thin(unet_mask)
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        print("Model", ransac_model)
+        if ransac_model == LinearFunction:
+            degree = 2
+        if ransac_model == QuadraticFunction:
+            degree = 3
+
+        ransac_result = Ransac(
+            sorted_non_zero_indices,
+            ransac_model,
+            degree,
+            min_samples=plugin_ransac_parameters.min_num_time_points.value,
+            max_trials=10000,
+            iterations=10,
+            residual_threshold=plugin_ransac_parameters.max_error.value,
+            save_name="",
+        )
+
+        estimators, estimator_inliers = ransac_result.extract_multiple_lines()
+
+        line_locations = []
+        for i in range(len(estimators)):
+
+            estimator = estimators[i]
+            estimator_inlier = estimator_inliers[i]
+            estimator_inliers_list = np.copy(estimator_inlier)
+            yarray, xarray = zip(*estimator_inliers_list.tolist())
+            yarray = np.asarray(yarray)
+            xarray = np.asarray(xarray)
+            line_locations.append(
+                [
+                    [estimator.predict(xarray[0]), xarray[0]],
+                    [estimator.predict(xarray[-1]), xarray[-1]],
+                ]
+            )
+
+        pred = layer_data, line_locations, scale_out
         return pred
 
     widget_for_vollseg_modeltype = {
