@@ -426,13 +426,6 @@ def plugin_wrapper_mtrack():
         if ransac_model == QuadraticFunction:
             degree = 3
 
-        non_zero_indices = list(zip(*np.where(layer_data > 0)))
-        sorted_non_zero_indices = sorted(
-            non_zero_indices,
-            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-        )
-        yarray, xarray = zip(*sorted_non_zero_indices)
-
         time_estimators = {}
         time_estimator_inliers = {}
         time_line_locations = []
@@ -463,10 +456,10 @@ def plugin_wrapper_mtrack():
             time_estimator_inliers[i] = estimator_inliers
 
             line_locations = []
-            for i in range(len(estimators)):
+            for j in range(len(estimators)):
 
                 estimator = estimators[i]
-                estimator_inlier = estimator_inliers[i]
+                estimator_inlier = estimator_inliers[j]
                 estimator_inliers_list = np.copy(estimator_inlier)
                 yarray, xarray = zip(*estimator_inliers_list.tolist())
                 yarray = np.asarray(yarray)
