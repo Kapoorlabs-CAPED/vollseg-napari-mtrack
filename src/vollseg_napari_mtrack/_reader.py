@@ -61,9 +61,8 @@ def reader_function(path):
                         (0, int(max_y) - image.shape[0]),
                         (0, int(max_x) - image.shape[1]),
                     ),
-                    mode="edge",
+                    mode="constant",
                 )
-                print(image.shape)
                 images.append(image)
                 names.append(os.path.splitext(os.path.basename(fname))[0])
         images_array = np.array(images)
