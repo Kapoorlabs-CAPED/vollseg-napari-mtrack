@@ -1094,13 +1094,7 @@ def plugin_wrapper_mtrack():
 
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
-                shape_layer_data = layer.data[currentfile]
-                shape_layer_data = []
-
-                name_remove = ["Fits_MTrack"]
-                for layer in list(plugin.viewer.value.layers):
-                    if any(name in layer.name for name in name_remove):
-                        plugin.viewer.value.layers.remove(layer)
+                all_shape_layer_data.remove(all_shape_layer_data[currentfile])
 
                 if ndim == 3:
 
@@ -1141,7 +1135,7 @@ def plugin_wrapper_mtrack():
                                     ],
                                 ]
                             )
-                    all_shape_layer_data[currentfile] = time_line_locations
+                    all_shape_layer_data.append(time_line_locations)
 
                     plugin.viewer.value.add_shapes(
                         np.asarray(all_shape_layer_data),
