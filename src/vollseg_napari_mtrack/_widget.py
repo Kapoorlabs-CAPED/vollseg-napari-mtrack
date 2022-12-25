@@ -382,7 +382,23 @@ def plugin_wrapper_mtrack():
             for layer in list(plugin.viewer.value.layers)
         ):
 
-            print("doing segmentation")
+            print(
+                "doing segmentation",
+                any(
+                    not isinstance(layer, napari.layers.Labels)
+                    for layer in list(plugin.viewer.value.layers)
+                ),
+            )
+
+            print(
+                "doing segmentation why",
+                any(
+                    isinstance(layer, napari.layers.Labels)
+                    and layer.data.shape != get_data(plugin.image.value).shape
+                    for layer in list(plugin.viewer.value.layers)
+                ),
+            )
+
             for count, _x in enumerate(x_reorder):
 
                 pre_res.append(
