@@ -17,6 +17,9 @@ from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
 
+ITERATIONS = 20
+MAXTRIALS = 100
+
 
 def plugin_wrapper_mtrack():
 
@@ -242,6 +245,9 @@ def plugin_wrapper_mtrack():
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
         ),
+        recompute_current_button=dict(
+            widget_type="PushButton", text="Recompute current file fits"
+        ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=True,
@@ -258,6 +264,7 @@ def plugin_wrapper_mtrack():
         model_folder_vollseg,
         n_tiles,
         defaults_model_button,
+        recompute_current_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -453,8 +460,8 @@ def plugin_wrapper_mtrack():
                         ransac_model,
                         degree,
                         min_samples=degree,
-                        max_trials=100,
-                        iterations=10,
+                        max_trials=MAXTRIALS,
+                        iterations=ITERATIONS,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
                         save_name="",
                     )
@@ -465,8 +472,8 @@ def plugin_wrapper_mtrack():
                         LinearFunction,
                         QuadraticFunction,
                         min_samples=degree,
-                        max_trials=100,
-                        iterations=10,
+                        max_trials=MAXTRIALS,
+                        iterations=ITERATIONS,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
                         save_name="",
                     )
@@ -568,8 +575,8 @@ def plugin_wrapper_mtrack():
                 ransac_model,
                 degree,
                 min_samples=plugin_ransac_parameters.min_num_time_points.value,
-                max_trials=100,
-                iterations=10,
+                max_trials=MAXTRIALS,
+                iterations=ITERATIONS,
                 residual_threshold=plugin_ransac_parameters.max_error.value,
                 save_name="",
             )
@@ -581,8 +588,8 @@ def plugin_wrapper_mtrack():
                 LinearFunction,
                 QuadraticFunction,
                 min_samples=plugin_ransac_parameters.min_num_time_points.value,
-                max_trials=100,
-                iterations=10,
+                max_trials=MAXTRIALS,
+                iterations=ITERATIONS,
                 residual_threshold=plugin_ransac_parameters.max_error.value,
                 save_name="",
             )
@@ -917,6 +924,64 @@ def plugin_wrapper_mtrack():
                 "Invalid model directory"
             )
 
+    def _special_function(layer_data, ransac_model):
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        if ransac_model == LinearFunction:
+            degree = 2
+            ransac_result = Ransac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=MAXTRIALS,
+                iterations=ITERATIONS,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
+        if ransac_model == QuadraticFunction:
+            degree = 3
+
+            ransac_result = ComboRansac(
+                sorted_non_zero_indices,
+                LinearFunction,
+                QuadraticFunction,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=MAXTRIALS,
+                iterations=ITERATIONS,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
+
+        estimators, estimator_inliers = ransac_result.extract_multiple_lines()
+
+        line_locations = []
+        for i in range(len(estimators)):
+
+            estimator = estimators[i]
+            estimator_inlier = estimator_inliers[i]
+            estimator_inliers_list = np.copy(estimator_inlier)
+            if (
+                len(estimator_inliers_list)
+                > plugin_ransac_parameters.min_num_time_points.value
+            ):
+                yarray, xarray = zip(*estimator_inliers_list.tolist())
+                yarray = np.asarray(yarray)
+                xarray = np.asarray(xarray)
+                line_locations.append(
+                    [
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
+
+        return line_locations
+
     @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
         path = Path(_path)
@@ -955,6 +1020,54 @@ def plugin_wrapper_mtrack():
     def restore_model_defaults():
         for k, v in DEFAULTS_SEG_PARAMETERS.items():
             getattr(plugin, k).value = v
+
+    @change_handler(plugin.recompute_current_button)
+    def _recompute_current(viewer: napari.Viewer):
+
+        currentfile = viewer.dims.current_step[0]
+
+        for layer in list(plugin.viewer.value.layers):
+            if (
+                isinstance(layer, napari.layers.Labels)
+                and layer.data.shape == get_data(plugin.image.value).shape
+            ):
+
+                layer_data = layer.data[currentfile]
+
+            if isinstance(layer, napari.layers.Shapes):
+                all_shape_layer_data = layer.data
+                shape_layer_data = layer.data[currentfile]
+                shape_layer_data = []
+                shape_layer_data = _special_function(
+                    layer_data,
+                    plugin_ransac_parameters.ransac_model_type.value,
+                )
+                name_remove = ["Fits_MTrack"]
+                for layer in list(plugin.viewer.value.layers):
+                    if any(name in layer.name for name in name_remove):
+                        plugin.viewer.value.layers.remove(layer)
+
+                ndim = len(get_data(plugin.image.value).shape)
+                if ndim == 3:
+                    all_shape_layer_data[currentfile] = shape_layer_data
+                    plugin.viewer.value.add_shapes(
+                        np.asarray(all_shape_layer_data),
+                        name="Fits_MTrack",
+                        shape_type="line",
+                        face_color=[0] * 4,
+                        edge_color="red",
+                        edge_width=1,
+                    )
+
+                else:
+                    plugin.viewer.value.add_shapes(
+                        np.asarray(shape_layer_data),
+                        name="Fits_MTrack",
+                        shape_type="line",
+                        face_color=[0] * 4,
+                        edge_color="red",
+                        edge_width=1,
+                    )
 
     # -> triggered by napari (if there are any open images on plugin launch)
 
