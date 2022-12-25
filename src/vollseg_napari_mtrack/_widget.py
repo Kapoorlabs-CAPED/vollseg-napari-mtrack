@@ -988,7 +988,7 @@ def plugin_wrapper_mtrack():
 
         return estimators, estimator_inliers
 
-    def _special_function_time(layer_data, ransac_model):
+    def _special_function_time(layer_data, ransac_model, current_time):
 
         if ransac_model == LinearFunction:
             degree = 2
@@ -998,45 +998,45 @@ def plugin_wrapper_mtrack():
         time_estimators = {}
         time_estimator_inliers = {}
 
-        for count, i in enumerate(range(layer_data.shape[0])):
-            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
-            sorted_non_zero_indices = sorted(
-                non_zero_indices,
-                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
-            )
-            if len(sorted_non_zero_indices) > 0:
-                yarray, xarray = zip(*sorted_non_zero_indices)
-                if ransac_model == LinearFunction:
-                    ransac_result = Ransac(
-                        sorted_non_zero_indices,
-                        ransac_model,
-                        degree,
-                        min_samples=degree,
-                        max_trials=MAXTRIALS,
-                        iterations=ITERATIONS,
-                        residual_threshold=plugin_ransac_parameters.max_error.value,
-                        save_name="",
-                    )
-                if ransac_model == QuadraticFunction:
+        i = current_time
+        non_zero_indices = list(zip(*np.where(layer_data > 0)))
+        sorted_non_zero_indices = sorted(
+            non_zero_indices,
+            key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+        )
+        if len(sorted_non_zero_indices) > 0:
+            yarray, xarray = zip(*sorted_non_zero_indices)
+            if ransac_model == LinearFunction:
+                ransac_result = Ransac(
+                    sorted_non_zero_indices,
+                    ransac_model,
+                    degree,
+                    min_samples=degree,
+                    max_trials=MAXTRIALS,
+                    iterations=ITERATIONS,
+                    residual_threshold=plugin_ransac_parameters.max_error.value,
+                    save_name="",
+                )
+            if ransac_model == QuadraticFunction:
 
-                    ransac_result = ComboRansac(
-                        sorted_non_zero_indices,
-                        LinearFunction,
-                        QuadraticFunction,
-                        min_samples=degree,
-                        max_trials=MAXTRIALS,
-                        iterations=ITERATIONS,
-                        residual_threshold=plugin_ransac_parameters.max_error.value,
-                        save_name="",
-                    )
+                ransac_result = ComboRansac(
+                    sorted_non_zero_indices,
+                    LinearFunction,
+                    QuadraticFunction,
+                    min_samples=degree,
+                    max_trials=MAXTRIALS,
+                    iterations=ITERATIONS,
+                    residual_threshold=plugin_ransac_parameters.max_error.value,
+                    save_name="",
+                )
 
-                (
-                    estimators,
-                    estimator_inliers,
-                ) = ransac_result.extract_multiple_lines()
+            (
+                estimators,
+                estimator_inliers,
+            ) = ransac_result.extract_multiple_lines()
 
-                time_estimators[i] = estimators
-                time_estimator_inliers[i] = estimator_inliers
+            time_estimators[i] = estimators
+            time_estimator_inliers[i] = estimator_inliers
         pred = time_estimators, time_estimator_inliers
         return pred
 
