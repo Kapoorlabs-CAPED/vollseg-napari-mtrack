@@ -1022,9 +1022,9 @@ def plugin_wrapper_mtrack():
             getattr(plugin, k).value = v
 
     @change_handler(plugin.recompute_current_button)
-    def _recompute_current(viewer: napari.Viewer):
+    def _recompute_current():
 
-        currentfile = viewer.dims.current_step[0]
+        currentfile = plugin.viewer.value.dims.current_step[0]
 
         for layer in list(plugin.viewer.value.layers):
             if (
