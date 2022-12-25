@@ -1105,13 +1105,11 @@ def plugin_wrapper_mtrack():
 
                 if ndim == 3:
 
-                    (
-                        time_estimator,
-                        time_estimator_inliers,
-                    ) = _special_function_time(
+                    (pred) = _special_function_time(
                         layer_data,
                         plugin_ransac_parameters.ransac_model_type.value,
                     )
+                    time_estimator, time_estimator_inliers = pred
                     estimators = time_estimator[currentfile]
                     estimator_inliers = time_estimator_inliers[currentfile]
                     time_line_locations = []
