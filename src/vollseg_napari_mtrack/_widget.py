@@ -329,16 +329,6 @@ def plugin_wrapper_mtrack():
     def return_segment_unet_time(pred):
 
         layer_data, time_line_locations, scale_out = pred
-        name_remove = "Skeleton"
-        for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Labels
-            ):
-                plugin.viewer.value.layers.remove(layer)
-
-        plugin.viewer.value.add_labels(
-            layer_data, name="Skeleton", scale=scale_out, opacity=0.5
-        )
 
         name_remove = "Fits"
         for layer in list(plugin.viewer.value.layers):
@@ -359,16 +349,7 @@ def plugin_wrapper_mtrack():
     def return_segment_unet(pred):
 
         layer_data, line_locations, scale_out = pred
-        name_remove = "Skeleton"
-        for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Labels
-            ):
-                plugin.viewer.value.layers.remove(layer)
 
-        plugin.viewer.value.add_labels(
-            layer_data, name="Skeleton", scale=scale_out, opacity=0.5
-        )
         name_remove = "Fits"
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove) and isinstance(
@@ -391,37 +372,57 @@ def plugin_wrapper_mtrack():
     ):
         pre_res = []
         yield 0
-        for count, _x in enumerate(x_reorder):
 
-            pre_res.append(
-                VollSeg(
-                    _x,
-                    unet_model=model_unet,
-                    n_tiles=plugin.n_tiles.value,
-                    axes=axes_reorder,
+        if any(
+            isinstance(layer, napari.layers.Labels)
+            and layer.shape != plugin.image.value.shape
+            for layer in list(plugin.viewer.value.layers)
+        ) or any(
+            not isinstance(layer, napari.layers.Labels)
+            for layer in list(plugin.viewer.value.layers)
+        ):
+
+            for count, _x in enumerate(x_reorder):
+
+                pre_res.append(
+                    VollSeg(
+                        _x,
+                        unet_model=model_unet,
+                        n_tiles=plugin.n_tiles.value,
+                        axes=axes_reorder,
+                    )
                 )
-            )
 
-        unet_mask, skeleton, denoised_image = zip(*pre_res)
+            unet_mask, skeleton, denoised_image = zip(*pre_res)
 
-        unet_mask = np.asarray(unet_mask)
+            unet_mask = np.asarray(unet_mask)
 
-        unet_mask = unet_mask > 0
-        unet_mask = np.moveaxis(unet_mask, 0, t)
-        unet_mask = np.reshape(unet_mask, x.shape)
-        for i in range(unet_mask.shape[0]):
-            unet_mask[i] = thin(unet_mask[i])
+            unet_mask = unet_mask > 0
+            unet_mask = np.moveaxis(unet_mask, 0, t)
+            unet_mask = np.reshape(unet_mask, x.shape)
+            for i in range(unet_mask.shape[0]):
+                unet_mask[i] = thin(unet_mask[i])
 
-        skeleton = np.asarray(skeleton)
-        skeleton = skeleton > 0
-        skeleton = np.moveaxis(skeleton, 0, t)
-        skeleton = np.reshape(skeleton, x.shape)
+            skeleton = np.asarray(skeleton)
+            skeleton = skeleton > 0
+            skeleton = np.moveaxis(skeleton, 0, t)
+            skeleton = np.reshape(skeleton, x.shape)
 
-        denoised_image = np.asarray(denoised_image)
-        denoised_image = np.moveaxis(denoised_image, 0, t)
-        denoised_image = np.reshape(denoised_image, x.shape)
+            denoised_image = np.asarray(denoised_image)
+            denoised_image = np.moveaxis(denoised_image, 0, t)
+            denoised_image = np.reshape(denoised_image, x.shape)
 
-        layer_data = unet_mask
+            layer_data = unet_mask
+
+        else:
+            for layer in list(plugin.viewer.value.layers):
+                if (
+                    isinstance(layer, napari.layers.Labels)
+                    and layer.shape == plugin.image.value.shape
+                ):
+
+                    layer_data = layer.data
+
         print("Model", ransac_model)
         if ransac_model == LinearFunction:
             degree = 2
@@ -486,16 +487,35 @@ def plugin_wrapper_mtrack():
     @thread_worker(connect={"returned": return_segment_unet})
     def _Unet(model_unet, x, axes, scale_out, ransac_model):
 
-        res = VollSeg(
-            x,
-            unet_model=model_unet,
-            n_tiles=plugin.n_tiles.value,
-            axes=axes,
-        )
+        if any(
+            isinstance(layer, napari.layers.Labels)
+            and layer.shape != plugin.image.value.shape
+            for layer in list(plugin.viewer.value.layers)
+        ) or any(
+            not isinstance(layer, napari.layers.Labels)
+            for layer in list(plugin.viewer.value.layers)
+        ):
 
-        unet_mask, skeleton, denoised_image = res
+            res = VollSeg(
+                x,
+                unet_model=model_unet,
+                n_tiles=plugin.n_tiles.value,
+                axes=axes,
+            )
 
-        layer_data = thin(unet_mask)
+            unet_mask, skeleton, denoised_image = res
+
+            layer_data = thin(unet_mask)
+
+        else:
+            for layer in list(plugin.viewer.value.layers):
+                if (
+                    isinstance(layer, napari.layers.Labels)
+                    and layer.shape == plugin.image.value.shape
+                ):
+
+                    layer_data = layer.data
+
         non_zero_indices = list(zip(*np.where(layer_data > 0)))
         sorted_non_zero_indices = sorted(
             non_zero_indices,
