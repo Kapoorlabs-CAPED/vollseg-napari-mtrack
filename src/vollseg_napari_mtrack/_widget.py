@@ -337,7 +337,7 @@ def plugin_wrapper_mtrack():
             ):
                 plugin.viewer.value.layers.remove(layer)
 
-        plugin.viewer.add_labels(layer_data, name="Segmentation")
+        plugin.viewer.value.add_labels(layer_data, name="Segmentation")
 
         plugin.viewer.value.add_shapes(
             np.asarray(time_line_locations),
@@ -359,7 +359,7 @@ def plugin_wrapper_mtrack():
             ):
                 plugin.viewer.value.layers.remove(layer)
 
-        plugin.viewer.add_labels(layer_data, name="Segmentation")
+        plugin.viewer.value.add_labels(layer_data, name="Segmentation")
 
         plugin.viewer.value.add_shapes(
             np.asarray(line_locations),
