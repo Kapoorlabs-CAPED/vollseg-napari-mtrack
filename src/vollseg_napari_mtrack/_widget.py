@@ -999,7 +999,6 @@ def plugin_wrapper_mtrack():
         time_estimator_inliers = {}
 
         for count, i in enumerate(range(layer_data.shape[0])):
-            yield count
             non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
             sorted_non_zero_indices = sorted(
                 non_zero_indices,
