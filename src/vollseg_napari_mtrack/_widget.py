@@ -552,7 +552,6 @@ def plugin_wrapper_mtrack():
         )
         yarray, xarray = zip(*sorted_non_zero_indices)
 
-        print("Model", ransac_model)
         if ransac_model == LinearFunction:
             degree = 2
         if ransac_model == QuadraticFunction:
