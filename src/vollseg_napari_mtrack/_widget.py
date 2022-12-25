@@ -373,31 +373,17 @@ def plugin_wrapper_mtrack():
         pre_res = []
         yield 0
 
-        if any(
-            isinstance(layer, napari.layers.Labels)
-            and layer.data.shape != get_data(plugin.image.value).shape
-            for layer in list(plugin.viewer.value.layers)
-        ) or any(
-            not isinstance(layer, napari.layers.Labels)
-            for layer in list(plugin.viewer.value.layers)
-        ):
-
-            print(
-                "doing segmentation",
-                any(
-                    not isinstance(layer, napari.layers.Labels)
-                    for layer in list(plugin.viewer.value.layers)
-                ),
-            )
-
-            print(
-                "doing segmentation why",
-                any(
-                    isinstance(layer, napari.layers.Labels)
-                    and layer.data.shape != get_data(plugin.image.value).shape
-                    for layer in list(plugin.viewer.value.layers)
-                ),
-            )
+        correct_label_present = False
+        no_label_present = False
+        for layer in list(plugin.viewer.value.layers):
+            if (
+                isinstance(layer, napari.layers.Labels)
+                and layer.data.shape == get_data(plugin.image.value).shape
+            ):
+                correct_label_present = True
+            if not isinstance(layer, napari.layers.Labels):
+                no_label_present = True
+        if correct_label_present is False or no_label_present is True:
 
             for count, _x in enumerate(x_reorder):
 
@@ -504,14 +490,17 @@ def plugin_wrapper_mtrack():
     @thread_worker(connect={"returned": return_segment_unet})
     def _Unet(model_unet, x, axes, scale_out, ransac_model):
 
-        if any(
-            isinstance(layer, napari.layers.Labels)
-            and layer.data.shape != get_data(plugin.image.value).shape
-            for layer in list(plugin.viewer.value.layers)
-        ) or any(
-            not isinstance(layer, napari.layers.Labels)
-            for layer in list(plugin.viewer.value.layers)
-        ):
+        correct_label_present = False
+        no_label_present = False
+        for layer in list(plugin.viewer.value.layers):
+            if (
+                isinstance(layer, napari.layers.Labels)
+                and layer.data.shape == get_data(plugin.image.value).shape
+            ):
+                correct_label_present = True
+            if not isinstance(layer, napari.layers.Labels):
+                no_label_present = True
+        if correct_label_present is False or no_label_present is True:
 
             res = VollSeg(
                 x,
