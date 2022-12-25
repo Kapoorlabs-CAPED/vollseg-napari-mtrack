@@ -997,7 +997,6 @@ def plugin_wrapper_mtrack():
 
         time_estimators = {}
         time_estimator_inliers = {}
-        time_line_locations = []
 
         for count, i in enumerate(range(layer_data.shape[0])):
             yield count
@@ -1040,33 +1039,7 @@ def plugin_wrapper_mtrack():
                 time_estimators[i] = estimators
                 time_estimator_inliers[i] = estimator_inliers
 
-                line_locations = []
-                for j in range(len(estimators)):
-
-                    estimator = estimators[j]
-                    estimator_inlier = estimator_inliers[j]
-                    estimator_inliers_list = np.copy(estimator_inlier)
-                    if (
-                        len(estimator_inliers_list)
-                        > plugin_ransac_parameters.min_num_time_points.value
-                    ):
-                        yarray, xarray = zip(*estimator_inliers_list.tolist())
-                        yarray = np.asarray(yarray)
-                        xarray = np.asarray(xarray)
-                        line_locations.append(
-                            [
-                                [estimator.predict(xarray[0]), xarray[0]],
-                                [estimator.predict(xarray[-1]), xarray[-1]],
-                            ]
-                        )
-                        time_line_locations.append(
-                            [
-                                [i, estimator.predict(xarray[0]), xarray[0]],
-                                [i, estimator.predict(xarray[-1]), xarray[-1]],
-                            ]
-                        )
-
-        return time_line_locations
+        return time_estimator_inliers, time_estimator_inliers
 
     @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
@@ -1132,11 +1105,46 @@ def plugin_wrapper_mtrack():
 
                 if ndim == 3:
 
-                    shape_layer_data = _special_function_time(
+                    (
+                        time_estimator_inliers,
+                        time_estimator_inliers,
+                    ) = _special_function_time(
                         layer_data,
                         plugin_ransac_parameters.ransac_model_type.value,
                     )
-                    all_shape_layer_data[currentfile] = shape_layer_data
+                    estimators = time_estimator_inliers[currentfile]
+                    estimator_inliers = time_estimator_inliers[currentfile]
+                    time_line_locations = []
+                    for j in range(len(estimators)):
+
+                        estimator = estimators[j]
+                        estimator_inlier = estimator_inliers[j]
+                        estimator_inliers_list = np.copy(estimator_inlier)
+                        if (
+                            len(estimator_inliers_list)
+                            > plugin_ransac_parameters.min_num_time_points.value
+                        ):
+                            yarray, xarray = zip(
+                                *estimator_inliers_list.tolist()
+                            )
+                            yarray = np.asarray(yarray)
+                            xarray = np.asarray(xarray)
+                            time_line_locations.append(
+                                [
+                                    [
+                                        currentfile,
+                                        estimator.predict(xarray[0]),
+                                        xarray[0],
+                                    ],
+                                    [
+                                        currentfile,
+                                        estimator.predict(xarray[-1]),
+                                        xarray[-1],
+                                    ],
+                                ]
+                            )
+                    all_shape_layer_data[currentfile] = time_line_locations
+
                     plugin.viewer.value.add_shapes(
                         np.asarray(all_shape_layer_data),
                         name="Fits_MTrack",
