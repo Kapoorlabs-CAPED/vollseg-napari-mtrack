@@ -1191,6 +1191,7 @@ def plugin_wrapper_mtrack():
         if ndim == 3:
             axes = "TYX"
             plugin.n_tiles.value = (1, 1, 1)
+            plugin_ransac_parameters.recompute_current_button.show()
         elif ndim == 2 and ndim_model == 2:
             axes = "YX"
             plugin.n_tiles.value = (1, 1)
