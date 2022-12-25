@@ -1107,6 +1107,7 @@ def plugin_wrapper_mtrack():
                     (pred) = _special_function_time(
                         layer_data,
                         plugin_ransac_parameters.ransac_model_type.value,
+                        current_time=currentfile,
                     )
                     time_estimator, time_estimator_inliers = pred
                     estimators = time_estimator[currentfile]
