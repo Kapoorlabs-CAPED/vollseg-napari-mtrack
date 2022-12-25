@@ -357,6 +357,7 @@ def plugin_wrapper_mtrack():
             if any(name in layer.name for name in name_remove) and isinstance(
                 layer, napari.layers.Shapes
             ):
+                print(layer.name)
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(layer_data, name="Seg_MTrack")
@@ -379,7 +380,7 @@ def plugin_wrapper_mtrack():
 
         if any(
             isinstance(layer, napari.layers.Labels)
-            and layer.data.shape != get_data(plugin.image).shape
+            and layer.data.shape != get_data(plugin.image.value).shape
             for layer in list(plugin.viewer.value.layers)
         ) or any(
             not isinstance(layer, napari.layers.Labels)
@@ -493,7 +494,7 @@ def plugin_wrapper_mtrack():
 
         if any(
             isinstance(layer, napari.layers.Labels)
-            and layer.data.shape != get_data(plugin.image).shape
+            and layer.data.shape != get_data(plugin.image.value).shape
             for layer in list(plugin.viewer.value.layers)
         ) or any(
             not isinstance(layer, napari.layers.Labels)
