@@ -1066,7 +1066,7 @@ def plugin_wrapper_mtrack():
                             ]
                         )
 
-        return line_locations
+        return time_line_locations
 
     @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
