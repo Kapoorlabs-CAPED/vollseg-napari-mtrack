@@ -152,7 +152,7 @@ def plugin_wrapper_mtrack():
             widget_type="SpinBox",
             label="Minimum number of timepoints",
             min=0.0,
-            step=5,
+            step=1,
             value=DEFAULTS_PRED_PARAMETERS["min_num_time_points"],
         ),
         minimum_height=dict(
@@ -469,7 +469,8 @@ def plugin_wrapper_mtrack():
 
                     ransac_result = ComboRansac(
                         sorted_non_zero_indices,
-                        ransac_model,
+                        LinearFunction,
+                        QuadraticFunction,
                         degree,
                         min_samples=plugin_ransac_parameters.min_num_time_points.value,
                         max_trials=100,
@@ -580,7 +581,8 @@ def plugin_wrapper_mtrack():
 
             ransac_result = ComboRansac(
                 sorted_non_zero_indices,
-                ransac_model,
+                LinearFunction,
+                QuadraticFunction,
                 degree,
                 min_samples=plugin_ransac_parameters.min_num_time_points.value,
                 max_trials=100,
