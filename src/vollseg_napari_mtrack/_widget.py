@@ -925,6 +925,32 @@ def plugin_wrapper_mtrack():
             )
 
     def _special_function(layer_data, ransac_model):
+        estimators, estimator_inliers = _common_function(
+            layer_data, ransac_model
+        )
+        line_locations = []
+        for i in range(len(estimators)):
+
+            estimator = estimators[i]
+            estimator_inlier = estimator_inliers[i]
+            estimator_inliers_list = np.copy(estimator_inlier)
+            if (
+                len(estimator_inliers_list)
+                > plugin_ransac_parameters.min_num_time_points.value
+            ):
+                yarray, xarray = zip(*estimator_inliers_list.tolist())
+                yarray = np.asarray(yarray)
+                xarray = np.asarray(xarray)
+                line_locations.append(
+                    [
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
+
+        return line_locations
+
+    def _common_function(layer_data, ransac_model):
         non_zero_indices = list(zip(*np.where(layer_data > 0)))
         sorted_non_zero_indices = sorted(
             non_zero_indices,
@@ -960,25 +986,85 @@ def plugin_wrapper_mtrack():
 
         estimators, estimator_inliers = ransac_result.extract_multiple_lines()
 
-        line_locations = []
-        for i in range(len(estimators)):
+        return estimators, estimator_inliers
 
-            estimator = estimators[i]
-            estimator_inlier = estimator_inliers[i]
-            estimator_inliers_list = np.copy(estimator_inlier)
-            if (
-                len(estimator_inliers_list)
-                > plugin_ransac_parameters.min_num_time_points.value
-            ):
-                yarray, xarray = zip(*estimator_inliers_list.tolist())
-                yarray = np.asarray(yarray)
-                xarray = np.asarray(xarray)
-                line_locations.append(
-                    [
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
-                    ]
-                )
+    def _special_function_time(layer_data, ransac_model):
+
+        if ransac_model == LinearFunction:
+            degree = 2
+        if ransac_model == QuadraticFunction:
+            degree = 3
+
+        time_estimators = {}
+        time_estimator_inliers = {}
+        time_line_locations = []
+
+        for count, i in enumerate(range(layer_data.shape[0])):
+            yield count
+            non_zero_indices = list(zip(*np.where(layer_data[i] > 0)))
+            sorted_non_zero_indices = sorted(
+                non_zero_indices,
+                key=lambda x: x[plugin_ransac_parameters.time_axis.value],
+            )
+            if len(sorted_non_zero_indices) > 0:
+                yarray, xarray = zip(*sorted_non_zero_indices)
+                if ransac_model == LinearFunction:
+                    ransac_result = Ransac(
+                        sorted_non_zero_indices,
+                        ransac_model,
+                        degree,
+                        min_samples=degree,
+                        max_trials=MAXTRIALS,
+                        iterations=ITERATIONS,
+                        residual_threshold=plugin_ransac_parameters.max_error.value,
+                        save_name="",
+                    )
+                if ransac_model == QuadraticFunction:
+
+                    ransac_result = ComboRansac(
+                        sorted_non_zero_indices,
+                        LinearFunction,
+                        QuadraticFunction,
+                        min_samples=degree,
+                        max_trials=MAXTRIALS,
+                        iterations=ITERATIONS,
+                        residual_threshold=plugin_ransac_parameters.max_error.value,
+                        save_name="",
+                    )
+
+                (
+                    estimators,
+                    estimator_inliers,
+                ) = ransac_result.extract_multiple_lines()
+
+                time_estimators[i] = estimators
+                time_estimator_inliers[i] = estimator_inliers
+
+                line_locations = []
+                for j in range(len(estimators)):
+
+                    estimator = estimators[j]
+                    estimator_inlier = estimator_inliers[j]
+                    estimator_inliers_list = np.copy(estimator_inlier)
+                    if (
+                        len(estimator_inliers_list)
+                        > plugin_ransac_parameters.min_num_time_points.value
+                    ):
+                        yarray, xarray = zip(*estimator_inliers_list.tolist())
+                        yarray = np.asarray(yarray)
+                        xarray = np.asarray(xarray)
+                        line_locations.append(
+                            [
+                                [estimator.predict(xarray[0]), xarray[0]],
+                                [estimator.predict(xarray[-1]), xarray[-1]],
+                            ]
+                        )
+                        time_line_locations.append(
+                            [
+                                [i, estimator.predict(xarray[0]), xarray[0]],
+                                [i, estimator.predict(xarray[-1]), xarray[-1]],
+                            ]
+                        )
 
         return line_locations
 
@@ -1025,7 +1111,7 @@ def plugin_wrapper_mtrack():
     def _recompute_current():
 
         currentfile = plugin.viewer.value.dims.current_step[0]
-
+        ndim = len(get_data(plugin.image.value).shape)
         for layer in list(plugin.viewer.value.layers):
             if (
                 isinstance(layer, napari.layers.Labels)
@@ -1038,17 +1124,18 @@ def plugin_wrapper_mtrack():
                 all_shape_layer_data = layer.data
                 shape_layer_data = layer.data[currentfile]
                 shape_layer_data = []
-                shape_layer_data = _special_function(
-                    layer_data,
-                    plugin_ransac_parameters.ransac_model_type.value,
-                )
+
                 name_remove = ["Fits_MTrack"]
                 for layer in list(plugin.viewer.value.layers):
                     if any(name in layer.name for name in name_remove):
                         plugin.viewer.value.layers.remove(layer)
 
-                ndim = len(get_data(plugin.image.value).shape)
                 if ndim == 3:
+
+                    shape_layer_data = _special_function_time(
+                        layer_data,
+                        plugin_ransac_parameters.ransac_model_type.value,
+                    )
                     all_shape_layer_data[currentfile] = shape_layer_data
                     plugin.viewer.value.add_shapes(
                         np.asarray(all_shape_layer_data),
@@ -1060,6 +1147,10 @@ def plugin_wrapper_mtrack():
                     )
 
                 else:
+                    shape_layer_data = _special_function(
+                        layer_data,
+                        plugin_ransac_parameters.ransac_model_type.value,
+                    )
                     plugin.viewer.value.add_shapes(
                         np.asarray(shape_layer_data),
                         name="Fits_MTrack",
