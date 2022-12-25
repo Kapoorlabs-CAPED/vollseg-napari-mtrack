@@ -1039,7 +1039,7 @@ def plugin_wrapper_mtrack():
                 time_estimators[i] = estimators
                 time_estimator_inliers[i] = estimator_inliers
 
-        return time_estimator_inliers, time_estimator_inliers
+        return time_estimators, time_estimator_inliers
 
     @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
@@ -1106,13 +1106,13 @@ def plugin_wrapper_mtrack():
                 if ndim == 3:
 
                     (
-                        time_estimator_inliers,
+                        time_estimator,
                         time_estimator_inliers,
                     ) = _special_function_time(
                         layer_data,
                         plugin_ransac_parameters.ransac_model_type.value,
                     )
-                    estimators = time_estimator_inliers[currentfile]
+                    estimators = time_estimator[currentfile]
                     estimator_inliers = time_estimator_inliers[currentfile]
                     time_line_locations = []
                     for j in range(len(estimators)):
