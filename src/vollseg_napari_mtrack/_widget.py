@@ -433,7 +433,7 @@ def plugin_wrapper_mtrack():
             for layer in list(plugin.viewer.value.layers):
                 if (
                     isinstance(layer, napari.layers.Labels)
-                    and layer.data.shape == plugin.image.value.shape
+                    and layer.data.shape == get_data(plugin.image.value).shape
                 ):
 
                     layer_data = layer.data
@@ -540,7 +540,7 @@ def plugin_wrapper_mtrack():
             for layer in list(plugin.viewer.value.layers):
                 if (
                     isinstance(layer, napari.layers.Labels)
-                    and layer.data.shape == plugin.image.value.shape
+                    and layer.data.shape == get_data(plugin.image.value).shape
                 ):
 
                     layer_data = layer.data
