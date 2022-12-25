@@ -182,6 +182,9 @@ def plugin_wrapper_mtrack():
         defaults_params_button=dict(
             widget_type="PushButton", text="Restore Parameter Defaults"
         ),
+        recompute_current_button=dict(
+            widget_type="PushButton", text="Recompute current file fits"
+        ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=False,
@@ -194,6 +197,7 @@ def plugin_wrapper_mtrack():
         time_axis,
         ransac_model_type,
         defaults_params_button,
+        recompute_current_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -245,9 +249,6 @@ def plugin_wrapper_mtrack():
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
         ),
-        recompute_current_button=dict(
-            widget_type="PushButton", text="Recompute current file fits"
-        ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=True,
@@ -264,7 +265,6 @@ def plugin_wrapper_mtrack():
         model_folder_vollseg,
         n_tiles,
         defaults_model_button,
-        recompute_current_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -1021,7 +1021,7 @@ def plugin_wrapper_mtrack():
         for k, v in DEFAULTS_SEG_PARAMETERS.items():
             getattr(plugin, k).value = v
 
-    @change_handler(plugin.recompute_current_button)
+    @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():
 
         currentfile = plugin.viewer.value.dims.current_step[0]
