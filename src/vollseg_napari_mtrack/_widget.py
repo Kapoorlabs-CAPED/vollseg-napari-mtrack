@@ -332,9 +332,7 @@ def plugin_wrapper_mtrack():
 
         name_remove = ["Fits_MTrack", "Seg_MTrack"]
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Shapes
-            ):
+            if any(name in layer.name for name in name_remove):
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(layer_data, name="Seg_MTrack")
@@ -354,10 +352,7 @@ def plugin_wrapper_mtrack():
 
         name_remove = ["Fits_MTrack", "Seg_MTrack"]
         for layer in list(plugin.viewer.value.layers):
-            if any(name in layer.name for name in name_remove) and isinstance(
-                layer, napari.layers.Shapes
-            ):
-                print(layer.name)
+            if any(name in layer.name for name in name_remove):
                 plugin.viewer.value.layers.remove(layer)
 
         plugin.viewer.value.add_labels(layer_data, name="Seg_MTrack")
@@ -387,6 +382,7 @@ def plugin_wrapper_mtrack():
             for layer in list(plugin.viewer.value.layers)
         ):
 
+            print("doing segmentation")
             for count, _x in enumerate(x_reorder):
 
                 pre_res.append(
