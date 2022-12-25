@@ -452,7 +452,7 @@ def plugin_wrapper_mtrack():
                         sorted_non_zero_indices,
                         ransac_model,
                         degree,
-                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                        min_samples=degree,
                         max_trials=100,
                         iterations=10,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -464,7 +464,7 @@ def plugin_wrapper_mtrack():
                         sorted_non_zero_indices,
                         LinearFunction,
                         QuadraticFunction,
-                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                        min_samples=degree,
                         max_trials=100,
                         iterations=10,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -475,6 +475,7 @@ def plugin_wrapper_mtrack():
                     estimators,
                     estimator_inliers,
                 ) = ransac_result.extract_multiple_lines()
+
                 time_estimators[i] = estimators
                 time_estimator_inliers[i] = estimator_inliers
 
@@ -484,21 +485,25 @@ def plugin_wrapper_mtrack():
                     estimator = estimators[j]
                     estimator_inlier = estimator_inliers[j]
                     estimator_inliers_list = np.copy(estimator_inlier)
-                    yarray, xarray = zip(*estimator_inliers_list.tolist())
-                    yarray = np.asarray(yarray)
-                    xarray = np.asarray(xarray)
-                    line_locations.append(
-                        [
-                            [estimator.predict(xarray[0]), xarray[0]],
-                            [estimator.predict(xarray[-1]), xarray[-1]],
-                        ]
-                    )
-                    time_line_locations.append(
-                        [
-                            [i, estimator.predict(xarray[0]), xarray[0]],
-                            [i, estimator.predict(xarray[-1]), xarray[-1]],
-                        ]
-                    )
+                    if (
+                        len(estimator_inliers_list)
+                        > plugin_ransac_parameters.min_num_time_points.value
+                    ):
+                        yarray, xarray = zip(*estimator_inliers_list.tolist())
+                        yarray = np.asarray(yarray)
+                        xarray = np.asarray(xarray)
+                        line_locations.append(
+                            [
+                                [estimator.predict(xarray[0]), xarray[0]],
+                                [estimator.predict(xarray[-1]), xarray[-1]],
+                            ]
+                        )
+                        time_line_locations.append(
+                            [
+                                [i, estimator.predict(xarray[0]), xarray[0]],
+                                [i, estimator.predict(xarray[-1]), xarray[-1]],
+                            ]
+                        )
 
         pred = layer_data, time_line_locations, scale_out
         return pred
@@ -590,15 +595,19 @@ def plugin_wrapper_mtrack():
             estimator = estimators[i]
             estimator_inlier = estimator_inliers[i]
             estimator_inliers_list = np.copy(estimator_inlier)
-            yarray, xarray = zip(*estimator_inliers_list.tolist())
-            yarray = np.asarray(yarray)
-            xarray = np.asarray(xarray)
-            line_locations.append(
-                [
-                    [estimator.predict(xarray[0]), xarray[0]],
-                    [estimator.predict(xarray[-1]), xarray[-1]],
-                ]
-            )
+            if (
+                len(estimator_inliers_list)
+                > plugin_ransac_parameters.min_num_time_points.value
+            ):
+                yarray, xarray = zip(*estimator_inliers_list.tolist())
+                yarray = np.asarray(yarray)
+                xarray = np.asarray(xarray)
+                line_locations.append(
+                    [
+                        [estimator.predict(xarray[0]), xarray[0]],
+                        [estimator.predict(xarray[-1]), xarray[-1]],
+                    ]
+                )
 
         pred = layer_data, line_locations, scale_out
         return pred
