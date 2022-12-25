@@ -27,7 +27,7 @@ def plugin_wrapper_mtrack():
     from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
 
-    DEBUG = True
+    DEBUG = False
 
     def _raise(e):
         if isinstance(e, BaseException):
@@ -374,7 +374,7 @@ def plugin_wrapper_mtrack():
         yield 0
 
         correct_label_present = []
-        no_label_present = []
+        any_label_present = []
         for layer in list(plugin.viewer.value.layers):
             if (
                 isinstance(layer, napari.layers.Labels)
@@ -388,13 +388,13 @@ def plugin_wrapper_mtrack():
                 correct_label_present.append(False)
 
             if not isinstance(layer, napari.layers.Labels):
-                no_label_present.append(True)
+                any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
-                no_label_present.append(False)
-        print(correct_label_present, no_label_present)
+                any_label_present.append(True)
+        print(correct_label_present, any_label_present)
         if (
             any(correct_label_present) is False
-            or any(no_label_present) is True
+            or any(any_label_present) is False
         ):
 
             for count, _x in enumerate(x_reorder):
@@ -503,7 +503,7 @@ def plugin_wrapper_mtrack():
     def _Unet(model_unet, x, axes, scale_out, ransac_model):
 
         correct_label_present = []
-        no_label_present = []
+        any_label_present = []
         for layer in list(plugin.viewer.value.layers):
             if (
                 isinstance(layer, napari.layers.Labels)
@@ -517,12 +517,13 @@ def plugin_wrapper_mtrack():
                 correct_label_present.append(False)
 
             if not isinstance(layer, napari.layers.Labels):
-                no_label_present.append(True)
+                any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
-                no_label_present.append(False)
+                any_label_present.append(True)
+        print(correct_label_present, any_label_present)
         if (
             any(correct_label_present) is False
-            or any(no_label_present) is True
+            or any(any_label_present) is False
         ):
 
             res = VollSeg(
