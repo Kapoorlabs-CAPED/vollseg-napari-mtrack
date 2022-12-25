@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
 
 def plugin_wrapper_mtrack():
 
-    from caped_ai_mtrack.Fits import Ransac
+    from caped_ai_mtrack.Fits import ComboRansac, Ransac
     from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
     from skimage.morphology import thin
@@ -391,7 +391,6 @@ def plugin_wrapper_mtrack():
                 any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
                 any_label_present.append(True)
-        print(correct_label_present, any_label_present)
         if (
             any(correct_label_present) is False
             or any(any_label_present) is False
@@ -438,7 +437,6 @@ def plugin_wrapper_mtrack():
 
                     layer_data = layer.data
 
-        print("Model", ransac_model)
         if ransac_model == LinearFunction:
             degree = 2
         if ransac_model == QuadraticFunction:
@@ -456,17 +454,30 @@ def plugin_wrapper_mtrack():
             )
             if len(sorted_non_zero_indices) > 0:
                 yarray, xarray = zip(*sorted_non_zero_indices)
+                if ransac_model == LinearFunction:
+                    ransac_result = Ransac(
+                        sorted_non_zero_indices,
+                        ransac_model,
+                        degree,
+                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                        max_trials=100,
+                        iterations=10,
+                        residual_threshold=plugin_ransac_parameters.max_error.value,
+                        save_name="",
+                    )
+                if ransac_model == QuadraticFunction:
 
-                ransac_result = Ransac(
-                    sorted_non_zero_indices,
-                    ransac_model,
-                    degree,
-                    min_samples=plugin_ransac_parameters.min_num_time_points.value,
-                    max_trials=100,
-                    iterations=10,
-                    residual_threshold=plugin_ransac_parameters.max_error.value,
-                    save_name="",
-                )
+                    ransac_result = ComboRansac(
+                        sorted_non_zero_indices,
+                        ransac_model,
+                        degree,
+                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                        max_trials=100,
+                        iterations=10,
+                        residual_threshold=plugin_ransac_parameters.max_error.value,
+                        save_name="",
+                    )
+
                 (
                     estimators,
                     estimator_inliers,
@@ -554,19 +565,29 @@ def plugin_wrapper_mtrack():
 
         if ransac_model == LinearFunction:
             degree = 2
+            ransac_result = Ransac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=100,
+                iterations=10,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
         if ransac_model == QuadraticFunction:
             degree = 3
 
-        ransac_result = Ransac(
-            sorted_non_zero_indices,
-            ransac_model,
-            degree,
-            min_samples=plugin_ransac_parameters.min_num_time_points.value,
-            max_trials=100,
-            iterations=10,
-            residual_threshold=plugin_ransac_parameters.max_error.value,
-            save_name="",
-        )
+            ransac_result = ComboRansac(
+                sorted_non_zero_indices,
+                ransac_model,
+                degree,
+                min_samples=plugin_ransac_parameters.min_num_time_points.value,
+                max_trials=100,
+                iterations=10,
+                residual_threshold=plugin_ransac_parameters.max_error.value,
+                save_name="",
+            )
 
         estimators, estimator_inliers = ransac_result.extract_multiple_lines()
 
