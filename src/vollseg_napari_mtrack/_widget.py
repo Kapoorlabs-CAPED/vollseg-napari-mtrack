@@ -284,15 +284,8 @@ def plugin_wrapper_mtrack():
             def progress_thread(current_time):
 
                 progress_bar.label = "Fitting Functions (files)"
-                progress_bar.range = (0, n_frames)
+                progress_bar.range = (0, n_frames - 1)
                 progress_bar.value = current_time
-                progress_bar.show()
-
-            def progress_thread_ransac(current_time):
-
-                progress_bar.label = "Fitting Function Fits (files)"
-                progress_bar.range = (0, n_frames)
-                progress_bar.value = current_time + 1
                 progress_bar.show()
 
         if "T" in axes and axes_out is not None:
