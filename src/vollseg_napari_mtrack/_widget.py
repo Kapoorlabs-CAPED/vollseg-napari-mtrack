@@ -520,7 +520,6 @@ def plugin_wrapper_mtrack():
                 any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
                 any_label_present.append(True)
-        print(correct_label_present, any_label_present)
         if (
             any(correct_label_present) is False
             or any(any_label_present) is False
@@ -541,7 +540,7 @@ def plugin_wrapper_mtrack():
             for layer in list(plugin.viewer.value.layers):
                 if (
                     isinstance(layer, napari.layers.Labels)
-                    and layer.shape == plugin.image.value.shape
+                    and layer.data.shape == plugin.image.value.shape
                 ):
 
                     layer_data = layer.data
