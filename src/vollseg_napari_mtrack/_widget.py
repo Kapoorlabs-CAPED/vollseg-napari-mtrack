@@ -1038,8 +1038,8 @@ def plugin_wrapper_mtrack():
 
                 time_estimators[i] = estimators
                 time_estimator_inliers[i] = estimator_inliers
-
-        return time_estimators, time_estimator_inliers
+        pred = time_estimators, time_estimator_inliers
+        return pred
 
     @change_handler(plugin.model_folder_vollseg, init=False)
     def _model_vollseg_folder_change(_path: str):
