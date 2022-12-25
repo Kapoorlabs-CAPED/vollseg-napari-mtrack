@@ -383,6 +383,7 @@ def plugin_wrapper_mtrack():
                 correct_label_present = True
             if not isinstance(layer, napari.layers.Labels):
                 no_label_present = True
+        print(correct_label_present, no_label_present)
         if correct_label_present is False or no_label_present is True:
 
             for count, _x in enumerate(x_reorder):
