@@ -1110,7 +1110,6 @@ def plugin_wrapper_mtrack():
                     time_estimator, time_estimator_inliers = pred
                     estimators = time_estimator[currentfile]
                     estimator_inliers = time_estimator_inliers[currentfile]
-                    time_line_locations = []
                     for j in range(len(estimators)):
 
                         estimator = estimators[j]
@@ -1125,7 +1124,7 @@ def plugin_wrapper_mtrack():
                             )
                             yarray = np.asarray(yarray)
                             xarray = np.asarray(xarray)
-                            time_line_locations.append(
+                            new_layer_data.append(
                                 [
                                     [
                                         currentfile,
@@ -1139,7 +1138,6 @@ def plugin_wrapper_mtrack():
                                     ],
                                 ]
                             )
-                    new_layer_data.append(time_line_locations)
 
                     plugin.viewer.value.add_shapes(
                         np.asarray(new_layer_data),
