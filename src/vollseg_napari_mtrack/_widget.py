@@ -26,7 +26,6 @@ def plugin_wrapper_mtrack():
     from caped_ai_mtrack.Fits import ComboRansac, Ransac
     from caped_ai_mtrack.RansacModels import LinearFunction, QuadraticFunction
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
-    from skimage.morphology import thin
     from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
 
@@ -415,7 +414,7 @@ def plugin_wrapper_mtrack():
             unet_mask = np.moveaxis(unet_mask, 0, t)
             unet_mask = np.reshape(unet_mask, x.shape)
             for i in range(unet_mask.shape[0]):
-                unet_mask[i] = thin(unet_mask[i])
+                unet_mask[i] = unet_mask[i]
 
             skeleton = np.asarray(skeleton)
             skeleton = skeleton > 0
@@ -550,7 +549,7 @@ def plugin_wrapper_mtrack():
 
             unet_mask, skeleton, denoised_image = res
 
-            layer_data = thin(unet_mask)
+            layer_data = unet_mask
 
         else:
             for layer in list(plugin.viewer.value.layers):
