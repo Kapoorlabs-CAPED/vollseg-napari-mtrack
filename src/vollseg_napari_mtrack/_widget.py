@@ -107,7 +107,7 @@ def plugin_wrapper_mtrack():
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
-        max_error=1,
+        max_error=0.01,
         min_num_time_points=2,
         minimum_height=4,
         time_axis=1,
@@ -147,8 +147,8 @@ def plugin_wrapper_mtrack():
         max_error=dict(
             widget_type="FloatSpinBox",
             label="Max error",
-            min=0.0,
-            step=0.05,
+            min=0.0000001,
+            step=0.005,
             value=DEFAULTS_PRED_PARAMETERS["max_error"],
         ),
         min_num_time_points=dict(
@@ -647,7 +647,7 @@ def plugin_wrapper_mtrack():
 
     plugin.native.layout().addWidget(tabs)
     plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-        "background-color: red"
+        "background-color: green"
     )
 
     def select_model_ransac(key):
