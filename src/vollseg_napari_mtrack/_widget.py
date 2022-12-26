@@ -1168,7 +1168,7 @@ def plugin_wrapper_mtrack():
         if worker is not None:
             worker.quit()
             plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-                "background-color: green"
+                "background-color: blue"
             )
 
     # -> triggered by napari (if there are any open images on plugin launch)
