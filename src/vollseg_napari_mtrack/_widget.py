@@ -107,7 +107,7 @@ def plugin_wrapper_mtrack():
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
-        max_error=0.1,
+        max_error=1,
         min_num_time_points=2,
         minimum_height=4,
         time_axis=1,
@@ -1082,6 +1082,9 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():
 
+        plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
+            "background-color: red"
+        )
         currentfile = plugin.viewer.value.dims.current_step[0]
         ndim = len(get_data(plugin.image.value).shape)
         for layer in list(plugin.viewer.value.layers):
@@ -1138,6 +1141,9 @@ def plugin_wrapper_mtrack():
                                     ],
                                 ]
                             )
+                    for layer in list(plugin.viewer.value.layers):
+                        if isinstance(layer, napari.layers.Shapes):
+                            plugin.viewer.value.layers.remove(layer)
 
                     plugin.viewer.value.add_shapes(
                         np.asarray(new_layer_data),
