@@ -1083,7 +1083,7 @@ def plugin_wrapper_mtrack():
     def _recompute_current():
 
         plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-            "background-color: red"
+            "background-color: green"
         )
         currentfile = plugin.viewer.value.dims.current_step[0]
         ndim = len(get_data(plugin.image.value).shape)
