@@ -53,7 +53,7 @@ def plugin_wrapper_mtrack():
             path = root.parent / relpath
         return str(path.absolute())
 
-    def change_handler(*widgets, init=True, debug=DEBUG):
+    def change_handler(*widgets, init=False, debug=DEBUG):
         def decorator_change_handler(handler):
             @functools.wraps(handler)
             def wrapper(*args):
@@ -1084,88 +1084,86 @@ def plugin_wrapper_mtrack():
 
     @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():
-        if plugin_ransac_parameters.recompute_current_button.value:
-            plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-                "background-color: red"
-            )
-            currentfile = plugin.viewer.value.dims.current_step[0]
-            ndim = len(get_data(plugin.image.value).shape)
-            for layer in list(plugin.viewer.value.layers):
-                if (
-                    isinstance(layer, napari.layers.Labels)
-                    and layer.data.shape == get_data(plugin.image.value).shape
-                ):
 
-                    layer_data = layer.data[currentfile]
+        plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
+            "background-color: red"
+        )
+        currentfile = plugin.viewer.value.dims.current_step[0]
+        ndim = len(get_data(plugin.image.value).shape)
+        for layer in list(plugin.viewer.value.layers):
+            if (
+                isinstance(layer, napari.layers.Labels)
+                and layer.data.shape == get_data(plugin.image.value).shape
+            ):
 
-                if isinstance(layer, napari.layers.Shapes):
-                    all_shape_layer_data = layer.data
-                    new_layer_data = []
+                layer_data = layer.data[currentfile]
 
-                    for current_layer_data in all_shape_layer_data:
-                        if currentfile not in current_layer_data:
-                            new_layer_data.append(current_layer_data)
-                    plugin.viewer.value.layers.remove(layer)
-                    if ndim == 3:
+            if isinstance(layer, napari.layers.Shapes):
+                all_shape_layer_data = layer.data
+                new_layer_data = []
 
-                        (pred) = _special_function_time(
-                            layer_data,
-                            plugin_ransac_parameters.ransac_model_type.value,
-                            current_time=currentfile,
-                        )
-                        time_estimator, time_estimator_inliers = pred
-                        estimators = time_estimator[currentfile]
-                        estimator_inliers = time_estimator_inliers[currentfile]
-                        for j in range(len(estimators)):
+                for current_layer_data in all_shape_layer_data:
+                    if currentfile not in current_layer_data:
+                        new_layer_data.append(current_layer_data)
+                plugin.viewer.value.layers.remove(layer)
+                if ndim == 3:
 
-                            estimator = estimators[j]
-                            estimator_inlier = estimator_inliers[j]
-                            estimator_inliers_list = np.copy(estimator_inlier)
-                            yarray, xarray = zip(
-                                *estimator_inliers_list.tolist()
-                            )
-                            yarray = np.asarray(yarray)
-                            xarray = np.asarray(xarray)
-                            new_layer_data.append(
+                    (pred) = _special_function_time(
+                        layer_data,
+                        plugin_ransac_parameters.ransac_model_type.value,
+                        current_time=currentfile,
+                    )
+                    time_estimator, time_estimator_inliers = pred
+                    estimators = time_estimator[currentfile]
+                    estimator_inliers = time_estimator_inliers[currentfile]
+                    for j in range(len(estimators)):
+
+                        estimator = estimators[j]
+                        estimator_inlier = estimator_inliers[j]
+                        estimator_inliers_list = np.copy(estimator_inlier)
+                        yarray, xarray = zip(*estimator_inliers_list.tolist())
+                        yarray = np.asarray(yarray)
+                        xarray = np.asarray(xarray)
+                        new_layer_data.append(
+                            [
                                 [
-                                    [
-                                        currentfile,
-                                        estimator.predict(xarray[0]),
-                                        xarray[0],
-                                    ],
-                                    [
-                                        currentfile,
-                                        estimator.predict(xarray[-1]),
-                                        xarray[-1],
-                                    ],
-                                ]
-                            )
-                        for layer in list(plugin.viewer.value.layers):
-                            if isinstance(layer, napari.layers.Shapes):
-                                plugin.viewer.value.layers.remove(layer)
+                                    currentfile,
+                                    estimator.predict(xarray[0]),
+                                    xarray[0],
+                                ],
+                                [
+                                    currentfile,
+                                    estimator.predict(xarray[-1]),
+                                    xarray[-1],
+                                ],
+                            ]
+                        )
+                    for layer in list(plugin.viewer.value.layers):
+                        if isinstance(layer, napari.layers.Shapes):
+                            plugin.viewer.value.layers.remove(layer)
 
-                        plugin.viewer.value.add_shapes(
-                            np.asarray(new_layer_data),
-                            name="Fits_MTrack",
-                            shape_type="line",
-                            face_color=[0] * 4,
-                            edge_color="red",
-                            edge_width=1,
-                        )
+                    plugin.viewer.value.add_shapes(
+                        np.asarray(new_layer_data),
+                        name="Fits_MTrack",
+                        shape_type="line",
+                        face_color=[0] * 4,
+                        edge_color="red",
+                        edge_width=1,
+                    )
 
-                    else:
-                        shape_layer_data = _special_function(
-                            layer_data,
-                            plugin_ransac_parameters.ransac_model_type.value,
-                        )
-                        plugin.viewer.value.add_shapes(
-                            np.asarray(shape_layer_data),
-                            name="Fits_MTrack",
-                            shape_type="line",
-                            face_color=[0] * 4,
-                            edge_color="red",
-                            edge_width=1,
-                        )
+                else:
+                    shape_layer_data = _special_function(
+                        layer_data,
+                        plugin_ransac_parameters.ransac_model_type.value,
+                    )
+                    plugin.viewer.value.add_shapes(
+                        np.asarray(shape_layer_data),
+                        name="Fits_MTrack",
+                        shape_type="line",
+                        face_color=[0] * 4,
+                        edge_color="red",
+                        edge_width=1,
+                    )
 
     # -> triggered by napari (if there are any open images on plugin launch)
 
