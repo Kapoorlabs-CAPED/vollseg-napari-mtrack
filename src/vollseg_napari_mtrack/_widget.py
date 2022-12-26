@@ -459,7 +459,7 @@ def plugin_wrapper_mtrack():
                         sorted_non_zero_indices,
                         ransac_model,
                         degree,
-                        min_samples=degree,
+                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
                         max_trials=MAXTRIALS,
                         iterations=ITERATIONS,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -471,7 +471,7 @@ def plugin_wrapper_mtrack():
                         sorted_non_zero_indices,
                         LinearFunction,
                         QuadraticFunction,
-                        min_samples=degree,
+                        min_samples=plugin_ransac_parameters.min_num_time_points.value,
                         max_trials=MAXTRIALS,
                         iterations=ITERATIONS,
                         residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -658,7 +658,7 @@ def plugin_wrapper_mtrack():
     def widgets_valid(*widgets, valid):
         for widget in widgets:
             widget.native.setStyleSheet(
-                "" if valid else "background-color: red"
+                "" if valid else "background-color: green"
             )
 
     class Updater:
@@ -1011,7 +1011,7 @@ def plugin_wrapper_mtrack():
                     sorted_non_zero_indices,
                     ransac_model,
                     degree,
-                    min_samples=degree,
+                    min_samples=plugin_ransac_parameters.min_num_time_points.value,
                     max_trials=MAXTRIALS,
                     iterations=ITERATIONS,
                     residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -1023,7 +1023,7 @@ def plugin_wrapper_mtrack():
                     sorted_non_zero_indices,
                     LinearFunction,
                     QuadraticFunction,
-                    min_samples=degree,
+                    min_samples=plugin_ransac_parameters.min_num_time_points.value,
                     max_trials=MAXTRIALS,
                     iterations=ITERATIONS,
                     residual_threshold=plugin_ransac_parameters.max_error.value,
@@ -1118,29 +1118,23 @@ def plugin_wrapper_mtrack():
                         estimator = estimators[j]
                         estimator_inlier = estimator_inliers[j]
                         estimator_inliers_list = np.copy(estimator_inlier)
-                        if (
-                            len(estimator_inliers_list)
-                            > plugin_ransac_parameters.min_num_time_points.value
-                        ):
-                            yarray, xarray = zip(
-                                *estimator_inliers_list.tolist()
-                            )
-                            yarray = np.asarray(yarray)
-                            xarray = np.asarray(xarray)
-                            new_layer_data.append(
+                        yarray, xarray = zip(*estimator_inliers_list.tolist())
+                        yarray = np.asarray(yarray)
+                        xarray = np.asarray(xarray)
+                        new_layer_data.append(
+                            [
                                 [
-                                    [
-                                        currentfile,
-                                        estimator.predict(xarray[0]),
-                                        xarray[0],
-                                    ],
-                                    [
-                                        currentfile,
-                                        estimator.predict(xarray[-1]),
-                                        xarray[-1],
-                                    ],
-                                ]
-                            )
+                                    currentfile,
+                                    estimator.predict(xarray[0]),
+                                    xarray[0],
+                                ],
+                                [
+                                    currentfile,
+                                    estimator.predict(xarray[-1]),
+                                    xarray[-1],
+                                ],
+                            ]
+                        )
                     for layer in list(plugin.viewer.value.layers):
                         if isinstance(layer, napari.layers.Shapes):
                             plugin.viewer.value.layers.remove(layer)
