@@ -1164,6 +1164,9 @@ def plugin_wrapper_mtrack():
                         edge_color="red",
                         edge_width=1,
                     )
+        plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
+            "background-color: green"
+        )
 
     # -> triggered by napari (if there are any open images on plugin launch)
 
