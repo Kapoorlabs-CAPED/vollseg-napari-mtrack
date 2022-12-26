@@ -647,7 +647,7 @@ def plugin_wrapper_mtrack():
 
     plugin.native.layout().addWidget(tabs)
     plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-        "background-color: green"
+        "background-color: red"
     )
 
     def select_model_ransac(key):
@@ -1085,9 +1085,6 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():
 
-        plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-            "background-color: red"
-        )
         currentfile = plugin.viewer.value.dims.current_step[0]
         ndim = len(get_data(plugin.image.value).shape)
         for layer in list(plugin.viewer.value.layers):
@@ -1164,12 +1161,6 @@ def plugin_wrapper_mtrack():
                         edge_color="red",
                         edge_width=1,
                     )
-
-        if worker is not None:
-            worker.quit()
-            plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-                "background-color: blue"
-            )
 
     # -> triggered by napari (if there are any open images on plugin launch)
 
