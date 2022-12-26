@@ -144,7 +144,7 @@ def plugin_wrapper_mtrack():
 
     @magicgui(
         max_error=dict(
-            widget_type="DoubleSpinBox",
+            widget_type="FloatSpinBox",
             label="Max error",
             min=0.0000001,
             step=0.0005,
