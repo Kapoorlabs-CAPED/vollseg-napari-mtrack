@@ -413,8 +413,6 @@ def plugin_wrapper_mtrack():
             unet_mask = unet_mask > 0
             unet_mask = np.moveaxis(unet_mask, 0, t)
             unet_mask = np.reshape(unet_mask, x.shape)
-            for i in range(unet_mask.shape[0]):
-                unet_mask[i] = unet_mask[i]
 
             skeleton = np.asarray(skeleton)
             skeleton = skeleton > 0
