@@ -106,7 +106,7 @@ def plugin_wrapper_mtrack():
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
-        max_error=0.01,
+        max_error=0.0001,
         min_num_time_points=2,
         minimum_height=4,
         time_axis=1,
@@ -144,10 +144,10 @@ def plugin_wrapper_mtrack():
 
     @magicgui(
         max_error=dict(
-            widget_type="FloatSpinBox",
+            widget_type="DoubleSpinBox",
             label="Max error",
             min=0.0000001,
-            step=0.005,
+            step=0.0005,
             value=DEFAULTS_PRED_PARAMETERS["max_error"],
         ),
         min_num_time_points=dict(
