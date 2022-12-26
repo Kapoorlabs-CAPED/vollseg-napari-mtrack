@@ -646,6 +646,9 @@ def plugin_wrapper_mtrack():
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)
+    plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
+        "background-color: green"
+    )
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -1083,7 +1086,7 @@ def plugin_wrapper_mtrack():
     def _recompute_current():
 
         plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
-            "background-color: green"
+            "background-color: red"
         )
         currentfile = plugin.viewer.value.dims.current_step[0]
         ndim = len(get_data(plugin.image.value).shape)
