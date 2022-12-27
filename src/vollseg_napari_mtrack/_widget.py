@@ -109,7 +109,7 @@ def plugin_wrapper_mtrack():
         max_error=0.0001,
         min_num_time_points=2,
         minimum_height=4,
-        time_axis=1,
+        time_axis=0,
     )
 
     def get_model_ransac(ransac_model_type):
