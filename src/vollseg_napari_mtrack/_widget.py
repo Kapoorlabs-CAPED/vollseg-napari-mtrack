@@ -355,43 +355,7 @@ def plugin_wrapper_mtrack():
             edge_width=1,
         )
 
-        data = []
-        if isinstance(layer, napari.layers.Shapes):
-            all_shape_layer_data = layer.data
-
-            for shape_data in all_shape_layer_data:
-
-                index = shape_data[0][0]
-                start_time = shape_data[0][
-                    plugin_ransac_parameters.time_axis.value
-                ]
-                end_time = shape_data[1][
-                    plugin_ransac_parameters.time_axis.value
-                ]
-                if end_time > start_time:
-                    rate = (
-                        shape_data[1][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                        - shape_data[0][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                    ) / (end_time - start_time)
-                else:
-                    rate = (
-                        shape_data[1][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                        - shape_data[0][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                    )
-
-                data.append([index, rate, start_time, end_time])
-        df = pd.DataFrame(
-            data, columns=["File Index", "Rate", "Start Time", "End Time"]
-        )
-        _refreshTableData(df)
+        rate_calculator()
 
     def return_segment_unet(pred):
 
@@ -413,7 +377,7 @@ def plugin_wrapper_mtrack():
             edge_width=1,
         )
 
-    # _refreshTableData()
+        rate_calculator()
 
     @thread_worker(connect={"returned": return_segment_unet_time})
     def _Unet_time(
@@ -1148,7 +1112,6 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():
 
-        data = []
         currentfile = plugin.viewer.value.dims.current_step[0]
         ndim = len(get_data(plugin.image.value).shape)
         for layer in list(plugin.viewer.value.layers):
@@ -1226,43 +1189,42 @@ def plugin_wrapper_mtrack():
                         edge_width=1,
                     )
 
-        if isinstance(layer, napari.layers.Shapes):
-            all_shape_layer_data = layer.data
-
-            for shape_data in all_shape_layer_data:
-
-                index = shape_data[0][0]
-                start_time = shape_data[0][
-                    plugin_ransac_parameters.time_axis.value
-                ]
-                end_time = shape_data[1][
-                    plugin_ransac_parameters.time_axis.value
-                ]
-                if end_time > start_time:
-                    rate = (
-                        shape_data[1][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                        - shape_data[0][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                    ) / (end_time - start_time)
-                else:
-                    rate = (
-                        shape_data[1][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                        - shape_data[0][
-                            1 - plugin_ransac_parameters.time_axis.value
-                        ]
-                    )
-                data.append([index, rate, start_time, end_time])
-        df = pd.DataFrame(
-            data, columns=["File Index", "Rate", "Start Time", "End Time"]
-        )
-        _refreshTableData(df)
+        rate_calculator()
 
     # -> triggered by napari (if there are any open images on plugin launch)
+
+    def rate_calculator():
+
+        data = []
+        for layer in list(plugin.viewer.value.layers):
+            if isinstance(layer, napari.layers.Shapes):
+                all_shape_layer_data = layer.data
+
+                for shape_data in all_shape_layer_data:
+
+                    index = shape_data[0][0]
+                    start_time = shape_data[0][
+                        1 + plugin_ransac_parameters.time_axis.value
+                    ]
+                    end_time = shape_data[1][
+                        1 + plugin_ransac_parameters.time_axis.value
+                    ]
+                    if end_time == start_time:
+                        end_time = start_time + 1
+                    rate = (
+                        shape_data[1][
+                            2 - plugin_ransac_parameters.time_axis.value
+                        ]
+                        - shape_data[0][
+                            2 - plugin_ransac_parameters.time_axis.value
+                        ]
+                    ) / (end_time - start_time)
+
+                    data.append([index, rate, start_time, end_time])
+            df = pd.DataFrame(
+                data, columns=["File Index", "Rate", "Start Time", "End Time"]
+            )
+            _refreshTableData(df)
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
