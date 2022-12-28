@@ -361,7 +361,6 @@ def plugin_wrapper_mtrack():
 
             for shape_data in all_shape_layer_data:
 
-                print(shape_data.shape)
                 index = shape_data[0][0]
                 start_time = shape_data[0][
                     plugin_ransac_parameters.time_axis.value
