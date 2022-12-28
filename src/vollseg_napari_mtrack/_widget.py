@@ -354,7 +354,13 @@ def plugin_wrapper_mtrack():
             edge_color="red",
             edge_width=1,
         )
-        _refreshTableData()
+        if isinstance(layer, napari.layers.Shapes):
+            all_shape_layer_data = layer.data
+
+            for shape_data in all_shape_layer_data:
+
+                print(shape_data.shape)
+        # _refreshTableData()
 
     def return_segment_unet(pred):
 
@@ -375,7 +381,8 @@ def plugin_wrapper_mtrack():
             edge_color="red",
             edge_width=1,
         )
-        _refreshTableData()
+
+    # _refreshTableData()
 
     @thread_worker(connect={"returned": return_segment_unet_time})
     def _Unet_time(
