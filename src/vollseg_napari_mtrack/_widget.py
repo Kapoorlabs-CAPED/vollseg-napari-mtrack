@@ -369,12 +369,25 @@ def plugin_wrapper_mtrack():
                 end_time = shape_data[1][
                     plugin_ransac_parameters.time_axis.value
                 ]
-                rate = (
-                    shape_data[1][1 - plugin_ransac_parameters.time_axis.value]
-                    - shape_data[0][
-                        1 - plugin_ransac_parameters.time_axis.value
-                    ]
-                ) / (end_time - start_time)
+                if end_time > start_time:
+                    rate = (
+                        shape_data[1][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                        - shape_data[0][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                    ) / (end_time - start_time)
+                else:
+                    rate = (
+                        shape_data[1][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                        - shape_data[0][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                    )
+
                 data.append([index, rate, start_time, end_time])
         df = pd.DataFrame(
             data, columns=["File Index", "Rate", "Start Time", "End Time"]
@@ -1226,12 +1239,24 @@ def plugin_wrapper_mtrack():
                 end_time = shape_data[1][
                     plugin_ransac_parameters.time_axis.value
                 ]
-                rate = (
-                    shape_data[1][1 - plugin_ransac_parameters.time_axis.value]
-                    - shape_data[0][
-                        1 - plugin_ransac_parameters.time_axis.value
-                    ]
-                ) / (end_time - start_time)
+                if end_time > start_time:
+                    rate = (
+                        shape_data[1][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                        - shape_data[0][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                    ) / (end_time - start_time)
+                else:
+                    rate = (
+                        shape_data[1][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                        - shape_data[0][
+                            1 - plugin_ransac_parameters.time_axis.value
+                        ]
+                    )
                 data.append([index, rate, start_time, end_time])
         df = pd.DataFrame(
             data, columns=["File Index", "Rate", "Start Time", "End Time"]
