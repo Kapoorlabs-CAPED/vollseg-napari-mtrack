@@ -686,10 +686,10 @@ def plugin_wrapper_mtrack():
     _plots_tab_layout.addWidget(plugin_plots.native)
     tabs.addTab(plots_tab, "Ransac Plots")
 
-    table_tab = QWidget()
+    table_tab = MTrackTable()
     _table_tab_layout = QVBoxLayout()
     table_tab.setLayout(_table_tab_layout)
-    _table_tab_layout.addWidget(MTrackTable())
+    _table_tab_layout.addWidget(table_tab)
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)
