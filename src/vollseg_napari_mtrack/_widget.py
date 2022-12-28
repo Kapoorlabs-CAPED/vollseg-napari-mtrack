@@ -1187,6 +1187,13 @@ def plugin_wrapper_mtrack():
                         edge_width=1,
                     )
 
+        if isinstance(layer, napari.layers.Shapes):
+            all_shape_layer_data = layer.data
+
+            for shape_data in all_shape_layer_data:
+
+                print(shape_data.shape)
+
     # -> triggered by napari (if there are any open images on plugin launch)
 
     @change_handler(plugin.image, init=False)
