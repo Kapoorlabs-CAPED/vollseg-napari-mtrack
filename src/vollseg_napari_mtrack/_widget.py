@@ -1204,7 +1204,7 @@ def plugin_wrapper_mtrack():
 
                     index = shape_data[0][0]
                     start_time = shape_data[0][
-                        1 + plugin_ransac_parameters.time_axis.value
+                        2 + plugin_ransac_parameters.time_axis.value
                     ]
                     end_time = shape_data[1][
                         2 + plugin_ransac_parameters.time_axis.value
@@ -1213,10 +1213,10 @@ def plugin_wrapper_mtrack():
                         end_time = start_time + 1
                     rate = (
                         shape_data[1][
-                            2 - plugin_ransac_parameters.time_axis.value
+                            1 - plugin_ransac_parameters.time_axis.value
                         ]
                         - shape_data[0][
-                            2 - plugin_ransac_parameters.time_axis.value
+                            1 - plugin_ransac_parameters.time_axis.value
                         ]
                     ) / (end_time - start_time)
 
