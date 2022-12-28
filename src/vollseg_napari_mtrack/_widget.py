@@ -1207,7 +1207,7 @@ def plugin_wrapper_mtrack():
                         1 + plugin_ransac_parameters.time_axis.value
                     ]
                     end_time = shape_data[1][
-                        1 + plugin_ransac_parameters.time_axis.value
+                        2 + plugin_ransac_parameters.time_axis.value
                     ]
                     if end_time == start_time:
                         end_time = start_time + 1
