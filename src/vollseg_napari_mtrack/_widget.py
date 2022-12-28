@@ -11,6 +11,7 @@ from typing import List, Union
 
 import napari
 import numpy as np
+import pandas as pd
 from magicgui import magicgui
 from magicgui import widgets as mw
 from napari.qt.threading import thread_worker
@@ -28,6 +29,9 @@ def plugin_wrapper_mtrack():
     from csbdeep.utils import axes_check_and_normalize, axes_dict, load_json
     from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
+
+    from ._data_model import pandasModel
+    from ._table_widget import MTrackTable
 
     DEBUG = False
 
@@ -134,12 +138,18 @@ def plugin_wrapper_mtrack():
         else:
             return None
 
-    @magicgui()
-    def plugin_table():
+    @magicgui(
+        persist=False,
+        call_button=False,
+    )
+    def plugin_table() -> List[napari.types.LayerDataTuple]:
         return plugin_table
 
-    @magicgui()
-    def plugin_plots():
+    @magicgui(
+        persist=False,
+        call_button=False,
+    )
+    def plugin_plots() -> List[napari.types.LayerDataTuple]:
         return plugin_plots
 
     @magicgui(
@@ -344,6 +354,7 @@ def plugin_wrapper_mtrack():
             edge_color="red",
             edge_width=1,
         )
+        _refreshTableData()
 
     def return_segment_unet(pred):
 
@@ -364,6 +375,7 @@ def plugin_wrapper_mtrack():
             edge_color="red",
             edge_width=1,
         )
+        _refreshTableData()
 
     @thread_worker(connect={"returned": return_segment_unet_time})
     def _Unet_time(
@@ -636,7 +648,7 @@ def plugin_wrapper_mtrack():
     _plots_tab_layout.addWidget(plugin_plots.native)
     tabs.addTab(plots_tab, "Ransac Plots")
 
-    table_tab = QWidget()
+    table_tab = MTrackTable()
     _table_tab_layout = QVBoxLayout()
     table_tab.setLayout(_table_tab_layout)
     _table_tab_layout.addWidget(plugin_table.native)
@@ -646,6 +658,22 @@ def plugin_wrapper_mtrack():
     plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
         "background-color: green"
     )
+
+    def _refreshTableData(df: pd.DataFrame):
+        """Refresh all data in table by setting its data model from provided dataframe.
+        Args:
+            df (pd.DataFrame): Pandas dataframe to refresh with.
+        """
+
+        if table_tab is None:
+            # interface has not been initialized
+            return
+
+        if df is None:
+            return
+
+        MTrackModel = pandasModel(df)
+        table_tab.mySetModel(MTrackModel)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -658,7 +686,7 @@ def plugin_wrapper_mtrack():
     def widgets_valid(*widgets, valid):
         for widget in widgets:
             widget.native.setStyleSheet(
-                "" if valid else "background-color: green"
+                "" if valid else "background-color: red"
             )
 
     class Updater:
