@@ -708,7 +708,48 @@ def plugin_wrapper_mtrack():
             selected_data (set[int]): Set of selected rows to select
         """
 
-        MTrackTable.mySelectRows(selected_data)
+        table_tab.mySelectRows(selected_data)
+
+    def _slot_data_change(
+        action: str, selection: set, layerSelectionCopy: dict
+    ):
+
+        df = table_tab.myModel._data
+
+        if action == "select":
+            # TODO (cudmore) if Layer is labaeled then selection is a list
+            if isinstance(selection, list):
+                selection = set(selection)
+            _selectInTable(selection)
+            table_tab.signalDataChanged.emit(action, selection, df)
+
+        elif action == "add":
+            # addedRowList = selection
+            # myTableData = self.getLayerDataFrame(rowList=addedRowList)
+            myTableData = df
+            table_tab.myModel.myAppendRow(myTableData)
+            _selectInTable(selection)
+            table_tab.signalDataChanged.emit(action, selection, df)
+        elif action == "delete":
+            # was this
+            deleteRowSet = selection
+            # logger.info(f'myEventType:{myEventType} deleteRowSet:{deleteRowSet}')
+            # deletedDataFrame = self.myTable2.myModel.myGetData().iloc[list(deleteRowSet)]
+
+            _deleteRows(deleteRowSet)
+
+            # self._blockDeleteFromTable = True
+            # self.myTable2.myModel.myDeleteRows(deleteRowList)
+            # self._blockDeleteFromTable = False
+
+            table_tab.signalDataChanged.emit(action, selection, df)
+        elif action == "change":
+            moveRowList = list(selection)  # rowList is actually indexes
+            myTableData = df
+            # myTableData = self.getLayerDataFrame(rowList=moveRowList)
+            table_tab.myModel.mySetRow(moveRowList, myTableData)
+
+            table_tab.signalDataChanged.emit(action, selection, df)
 
     def _slot_selection_changed(selectedRowList: List[int], isAlt: bool):
         """Respond to user selecting a table row.
@@ -718,10 +759,11 @@ def plugin_wrapper_mtrack():
         """
 
         df = table_tab.myModel._data
-        selectedRowSet = set(selectedRowList)
+        # selectedRowSet = set(selectedRowList)
 
         print(df)
-        table_tab.signalDataChanged.emit("select", selectedRowSet, df)
+
+        # table_tab.signalDataChanged.emit("select", selectedRowSet, df)
 
     def _deleteRows(rows: Set[int]):
         MTrackTable.myModel.myDeleteRows(rows)
@@ -741,7 +783,6 @@ def plugin_wrapper_mtrack():
 
         MTrackModel = pandasModel(df)
         table_tab.mySetModel(MTrackModel)
-        table_tab.signalSelectionChanged.connect(_slot_selection_changed)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -756,6 +797,9 @@ def plugin_wrapper_mtrack():
             widget.native.setStyleSheet(
                 "" if valid else "background-color: red"
             )
+
+    table_tab.signalDataChanged.connect(_slot_data_change)
+    table_tab.signalSelectionChanged.connect(_slot_selection_changed)
 
     class Updater:
         def __init__(self, debug=DEBUG):
