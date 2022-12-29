@@ -32,6 +32,7 @@ def plugin_wrapper_mtrack():
     from vollseg.pretrained import get_model_folder, get_registered_models
 
     from ._data_model import pandasModel
+    from ._plot_widget import MTrackPlot
     from ._table_widget import MTrackTable
 
     DEBUG = False
@@ -138,13 +139,6 @@ def plugin_wrapper_mtrack():
             return vollseg_model_type.local_from_pretrained(model_vollseg)
         else:
             return None
-
-    @magicgui(
-        persist=False,
-        call_button=False,
-    )
-    def plugin_plots() -> List[napari.types.LayerDataTuple]:
-        return plugin_plots
 
     @magicgui(
         max_error=dict(
@@ -681,11 +675,11 @@ def plugin_wrapper_mtrack():
     _parameter_ransac_tab_layout.addWidget(plugin_ransac_parameters.native)
     tabs.addTab(parameter_ransac_tab, "Ransac Parameter Selection")
 
-    plots_tab = QWidget()
-    _plots_tab_layout = QVBoxLayout()
-    plots_tab.setLayout(_plots_tab_layout)
-    _plots_tab_layout.addWidget(plugin_plots.native)
-    tabs.addTab(plots_tab, "Ransac Plots")
+    plot_tab = MTrackPlot()
+    _plot_tab_layout = QVBoxLayout()
+    plot_tab.setLayout(_plot_tab_layout)
+    _plot_tab_layout.addWidget(plot_tab)
+    tabs.addTab(plot_tab, "Ransac Plots")
 
     table_tab = MTrackTable()
     _table_tab_layout = QVBoxLayout()
@@ -766,7 +760,12 @@ def plugin_wrapper_mtrack():
         # table_tab.signalDataChanged.emit("select", selectedRowSet, df)
 
     def _deleteRows(rows: Set[int]):
-        MTrackTable.myModel.myDeleteRows(rows)
+        table_tab.myModel.myDeleteRows(rows)
+
+    def _refreshPlotData():
+
+        df = table_tab.myModel._data
+        plot_tab.setmyPlotModel(df)
 
     def _refreshTableData(df: pd.DataFrame):
         """Refresh all data in table by setting its data model from provided dataframe.
@@ -783,6 +782,7 @@ def plugin_wrapper_mtrack():
 
         MTrackModel = pandasModel(df)
         table_tab.mySetModel(MTrackModel)
+        _refreshPlotData()
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
