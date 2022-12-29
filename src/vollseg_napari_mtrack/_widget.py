@@ -434,7 +434,7 @@ def plugin_wrapper_mtrack():
 
             layer_data = np.zeros_like(unet_mask)
             for i in range(unet_mask.shape[0]):
-                layer_data[i] = binary_dilation(unet_mask[i], iterations=1)
+                layer_data[i] = binary_dilation(unet_mask[i], iterations=2)
 
         else:
             for layer in list(plugin.viewer.value.layers):
@@ -579,7 +579,7 @@ def plugin_wrapper_mtrack():
 
             unet_mask, skeleton, denoised_image = res
 
-            layer_data = binary_dilation(unet_mask, iterations=1)
+            layer_data = binary_dilation(unet_mask, iterations=2)
 
         else:
             for layer in list(plugin.viewer.value.layers):
