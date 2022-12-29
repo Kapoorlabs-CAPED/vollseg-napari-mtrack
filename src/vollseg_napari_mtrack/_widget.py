@@ -1392,7 +1392,7 @@ def plugin_wrapper_mtrack():
                             ]
                         ) / (end_time - start_time)
                         total_time = total_time + end_time - start_time
-                        if rate >= 0:
+                        if rate >= 0 and len(all_shape_layer_data) > 1:
                             data.append(
                                 [
                                     index,
@@ -1411,6 +1411,7 @@ def plugin_wrapper_mtrack():
                             if (
                                 next_index == index
                                 or s < len(all_shape_layer_data) - 1
+                                and len(all_shape_layer_data) > 1
                             ):
                                 data.append(
                                     [
@@ -1426,6 +1427,7 @@ def plugin_wrapper_mtrack():
                         if (
                             next_index != index
                             or s == len(all_shape_layer_data) - 1
+                            and rate < 0
                         ):
                             cat_frequ = cat_frequ / total_time
                             data.append(
@@ -1433,6 +1435,23 @@ def plugin_wrapper_mtrack():
                                     index,
                                     None,
                                     rate,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
+                        if (
+                            next_index != index
+                            or s == len(all_shape_layer_data) - 1
+                            and rate >= 0
+                        ):
+                            cat_frequ = cat_frequ / total_time
+                            data.append(
+                                [
+                                    index,
+                                    rate,
+                                    None,
                                     start_time,
                                     end_time,
                                     cat_frequ,
@@ -1464,7 +1483,7 @@ def plugin_wrapper_mtrack():
                             ]
                         ) / (end_time - start_time)
                         total_time = total_time + end_time - start_time
-                        if rate >= 0:
+                        if rate >= 0 and len(all_shape_layer_data) > 1:
                             data.append(
                                 [
                                     index,
@@ -1479,7 +1498,10 @@ def plugin_wrapper_mtrack():
                         else:
 
                             cat_frequ = cat_frequ + 1
-                            if s < len(all_shape_layer_data) - 1:
+                            if (
+                                s < len(all_shape_layer_data) - 1
+                                and len(all_shape_layer_data) > 1
+                            ):
 
                                 data.append(
                                     [
@@ -1492,13 +1514,27 @@ def plugin_wrapper_mtrack():
                                         res_frequ,
                                     ]
                                 )
-                        if s == len(all_shape_layer_data) - 1:
+
+                        if s == len(all_shape_layer_data) - 1 and rate < 0:
                             cat_frequ = cat_frequ / total_time
                             data.append(
                                 [
                                     index,
                                     None,
                                     rate,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
+                        if s == len(all_shape_layer_data) - 1 and rate >= 0:
+                            cat_frequ = cat_frequ / total_time
+                            data.append(
+                                [
+                                    index,
+                                    rate,
+                                    None,
                                     start_time,
                                     end_time,
                                     cat_frequ,
