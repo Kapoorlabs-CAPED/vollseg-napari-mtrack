@@ -17,6 +17,7 @@ from magicgui import widgets as mw
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
+from scipy.ndimage.morphology import binary_dilation
 
 ITERATIONS = 20
 MAXTRIALS = 100
@@ -338,7 +339,7 @@ def plugin_wrapper_mtrack():
     def return_segment_unet_time(pred):
 
         layer_data, time_line_locations, scale_out = pred
-
+        ndim = len(get_data(plugin.image.value).shape)
         name_remove = ["Fits_MTrack", "Seg_MTrack"]
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove):
@@ -355,12 +356,12 @@ def plugin_wrapper_mtrack():
             edge_width=1,
         )
 
-        rate_calculator()
+        rate_calculator(ndim)
 
     def return_segment_unet(pred):
 
         layer_data, line_locations, scale_out = pred
-
+        ndim = len(get_data(plugin.image.value).shape)
         name_remove = ["Fits_MTrack", "Seg_MTrack"]
         for layer in list(plugin.viewer.value.layers):
             if any(name in layer.name for name in name_remove):
@@ -377,7 +378,7 @@ def plugin_wrapper_mtrack():
             edge_width=1,
         )
 
-        rate_calculator()
+        rate_calculator(ndim)
 
     @thread_worker(connect={"returned": return_segment_unet_time})
     def _Unet_time(
@@ -437,7 +438,9 @@ def plugin_wrapper_mtrack():
             denoised_image = np.moveaxis(denoised_image, 0, t)
             denoised_image = np.reshape(denoised_image, x.shape)
 
-            layer_data = unet_mask
+            layer_data = np.zeros_like(unet_mask)
+            for i in range(unet_mask.shape[0]):
+                layer_data[i] = binary_dilation(unet_mask[i], iterations=1)
 
         else:
             for layer in list(plugin.viewer.value.layers):
@@ -463,8 +466,12 @@ def plugin_wrapper_mtrack():
                 non_zero_indices,
                 key=lambda x: x[plugin_ransac_parameters.time_axis.value],
             )
+            if plugin_ransac_parameters.time_axis.value == 0:
+                temp_sorted_non_zero_indices = [
+                    (sub[1], sub[0]) for sub in sorted_non_zero_indices
+                ]
+            sorted_non_zero_indices = temp_sorted_non_zero_indices
             if len(sorted_non_zero_indices) > 0:
-                yarray, xarray = zip(*sorted_non_zero_indices)
                 if ransac_model == LinearFunction:
                     ransac_result = Ransac(
                         sorted_non_zero_indices,
@@ -510,18 +517,35 @@ def plugin_wrapper_mtrack():
                         yarray, xarray = zip(*estimator_inliers_list.tolist())
                         yarray = np.asarray(yarray)
                         xarray = np.asarray(xarray)
-                        line_locations.append(
-                            [
-                                [estimator.predict(xarray[0]), xarray[0]],
-                                [estimator.predict(xarray[-1]), xarray[-1]],
-                            ]
-                        )
-                        time_line_locations.append(
-                            [
-                                [i, estimator.predict(xarray[0]), xarray[0]],
-                                [i, estimator.predict(xarray[-1]), xarray[-1]],
-                            ]
-                        )
+                        time = xarray
+                        time.sort()
+                        if int(time[-1]) > int(time[0]):
+                            line_locations.append(
+                                [
+                                    [time[0], estimator.predict(time[0])],
+                                    [time[-1], estimator.predict(time[-1])],
+                                ]
+                            )
+                            time_line_locations.append(
+                                [
+                                    [i, time[0], estimator.predict(time[0])],
+                                    [i, time[-1], estimator.predict(time[-1])],
+                                ]
+                            )
+                        else:
+                            time[-1] = time[-1] + 1
+                            line_locations.append(
+                                [
+                                    [time[0], estimator.predict(time[0])],
+                                    [time[-1], estimator.predict(time[-1])],
+                                ]
+                            )
+                            time_line_locations.append(
+                                [
+                                    [i, time[0], estimator.predict(time[0])],
+                                    [i, time[-1], estimator.predict(time[-1])],
+                                ]
+                            )
 
         pred = layer_data, time_line_locations, scale_out
         return pred
@@ -561,7 +585,7 @@ def plugin_wrapper_mtrack():
 
             unet_mask, skeleton, denoised_image = res
 
-            layer_data = unet_mask
+            layer_data = binary_dilation(unet_mask, iterations=1)
 
         else:
             for layer in list(plugin.viewer.value.layers):
@@ -577,7 +601,12 @@ def plugin_wrapper_mtrack():
             non_zero_indices,
             key=lambda x: x[plugin_ransac_parameters.time_axis.value],
         )
-        yarray, xarray = zip(*sorted_non_zero_indices)
+
+        if plugin_ransac_parameters.time_axis.value == 0:
+            temp_sorted_non_zero_indices = [
+                (sub[1], sub[0]) for sub in sorted_non_zero_indices
+            ]
+        sorted_non_zero_indices = temp_sorted_non_zero_indices
 
         if ransac_model == LinearFunction:
             degree = 2
@@ -620,12 +649,24 @@ def plugin_wrapper_mtrack():
                 yarray, xarray = zip(*estimator_inliers_list.tolist())
                 yarray = np.asarray(yarray)
                 xarray = np.asarray(xarray)
-                line_locations.append(
-                    [
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
-                    ]
-                )
+                time = xarray
+                time.sort()
+                if int(time[-1]) > int(time[0]):
+                    line_locations.append(
+                        [
+                            [time[0], estimator.predict(time[0])],
+                            [time[-1], estimator.predict(time[-1])],
+                        ]
+                    )
+                    print(line_locations, int(time[-1]), int(time[0]))
+                else:
+                    time[-1] = time[-1] + 1
+                    line_locations.append(
+                        [
+                            [time[0], estimator.predict(time[0])],
+                            [time[-1], estimator.predict(time[-1])],
+                        ]
+                    )
 
         pred = layer_data, line_locations, scale_out
         return pred
@@ -754,6 +795,8 @@ def plugin_wrapper_mtrack():
                     self.args, "image_axes", (None, None, None)
                 )
 
+                if axes == "YX":
+                    plugin_ransac_parameters.recompute_current_button.hide()
                 widgets_valid(
                     plugin.axes,
                     valid=(
@@ -971,12 +1014,26 @@ def plugin_wrapper_mtrack():
                 yarray, xarray = zip(*estimator_inliers_list.tolist())
                 yarray = np.asarray(yarray)
                 xarray = np.asarray(xarray)
-                line_locations.append(
-                    [
-                        [estimator.predict(xarray[0]), xarray[0]],
-                        [estimator.predict(xarray[-1]), xarray[-1]],
-                    ]
-                )
+                if plugin_ransac_parameters.time_axis.value == 0:
+                    time = yarray
+                else:
+                    time = xarray
+                time.sort()
+                if int(time[-1]) > int(time[0]):
+                    line_locations.append(
+                        [
+                            [estimator.predict(time[0]), time[0]],
+                            [estimator.predict(time[-1]), time[-1]],
+                        ]
+                    )
+                else:
+                    time[-1] = time[-1] + 1
+                    line_locations.append(
+                        [
+                            [estimator.predict(time[0]), time[0]],
+                            [estimator.predict(time[-1]), time[-1]],
+                        ]
+                    )
 
         return line_locations
 
@@ -1148,6 +1205,7 @@ def plugin_wrapper_mtrack():
                         yarray, xarray = zip(*estimator_inliers_list.tolist())
                         yarray = np.asarray(yarray)
                         xarray = np.asarray(xarray)
+                        xarray.sort()
                         new_layer_data.append(
                             [
                                 [
@@ -1189,42 +1247,68 @@ def plugin_wrapper_mtrack():
                         edge_width=1,
                     )
 
-        rate_calculator()
+        rate_calculator(ndim)
 
     # -> triggered by napari (if there are any open images on plugin launch)
 
-    def rate_calculator():
+    def rate_calculator(ndim: int):
 
         data = []
+
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
 
                 for shape_data in all_shape_layer_data:
+                    if ndim == 3:
+                        index = shape_data[0][0]
+                        start_time = int(
+                            shape_data[0][
+                                1 + plugin_ransac_parameters.time_axis.value
+                            ]
+                        )
+                        end_time = int(
+                            shape_data[1][
+                                1 + plugin_ransac_parameters.time_axis.value
+                            ]
+                        )
+                        if end_time == start_time:
+                            end_time = start_time + 1
+                        rate = (
+                            shape_data[1][
+                                2 - plugin_ransac_parameters.time_axis.value
+                            ]
+                            - shape_data[0][
+                                2 - plugin_ransac_parameters.time_axis.value
+                            ]
+                        ) / (end_time - start_time)
 
-                    index = shape_data[0][0]
-                    start_time = int(
-                        shape_data[0][
-                            1 + plugin_ransac_parameters.time_axis.value
-                        ]
-                    )
-                    end_time = int(
-                        shape_data[1][
-                            1 + plugin_ransac_parameters.time_axis.value
-                        ]
-                    )
-                    if end_time == start_time:
-                        end_time = start_time + 1
-                    rate = (
-                        shape_data[1][
-                            2 - plugin_ransac_parameters.time_axis.value
-                        ]
-                        - shape_data[0][
-                            2 - plugin_ransac_parameters.time_axis.value
-                        ]
-                    ) / (end_time - start_time)
+                        data.append([index, rate, start_time, end_time])
+                    if ndim == 2:
+                        index = 0
+                        start_time = int(
+                            shape_data[0][
+                                plugin_ransac_parameters.time_axis.value
+                            ]
+                        )
+                        end_time = int(
+                            shape_data[1][
+                                plugin_ransac_parameters.time_axis.value
+                            ]
+                        )
+                        if end_time == start_time:
+                            end_time = start_time + 1
+                        rate = (
+                            shape_data[1][
+                                1 - plugin_ransac_parameters.time_axis.value
+                            ]
+                            - shape_data[0][
+                                1 - plugin_ransac_parameters.time_axis.value
+                            ]
+                        ) / (end_time - start_time)
 
-                    data.append([index, rate, start_time, end_time])
+                        data.append([index, rate, start_time, end_time])
+
             df = pd.DataFrame(
                 data, columns=["File Index", "Rate", "Start Time", "End Time"]
             )
@@ -1238,7 +1322,7 @@ def plugin_wrapper_mtrack():
 
         # dimensionality of selected model: 2, 3, or None (unknown)
         ndim = get_data(image).ndim
-
+        ndim_model = ndim
         if (
             plugin.vollseg_model_type.value
             != DEFAULTS_MODEL["model_vollseg_none"]
