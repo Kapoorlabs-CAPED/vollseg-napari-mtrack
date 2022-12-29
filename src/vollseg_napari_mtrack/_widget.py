@@ -21,7 +21,7 @@ from matplotlib.backends.backend_qt5agg import (
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
-from scipy.ndimage.morphology import binary_dilation
+from scipy.ndimage.morphology import binary_erosion
 
 ITERATIONS = 20
 MAXTRIALS = 100
@@ -434,7 +434,7 @@ def plugin_wrapper_mtrack():
 
             layer_data = np.zeros_like(unet_mask)
             for i in range(unet_mask.shape[0]):
-                layer_data[i] = binary_dilation(unet_mask[i], iterations=2)
+                layer_data[i] = binary_erosion(unet_mask[i])
 
         else:
             for layer in list(plugin.viewer.value.layers):
@@ -579,7 +579,7 @@ def plugin_wrapper_mtrack():
 
             unet_mask, skeleton, denoised_image = res
 
-            layer_data = binary_dilation(unet_mask, iterations=2)
+            layer_data = binary_erosion(unet_mask)
 
         else:
             for layer in list(plugin.viewer.value.layers):
