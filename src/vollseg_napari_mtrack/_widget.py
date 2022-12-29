@@ -1390,7 +1390,7 @@ def plugin_wrapper_mtrack():
                                 [
                                     index,
                                     rate,
-                                    0,
+                                    None,
                                     start_time,
                                     end_time,
                                     cat_frequ,
@@ -1401,7 +1401,7 @@ def plugin_wrapper_mtrack():
                             data.append(
                                 [
                                     index,
-                                    0,
+                                    None,
                                     rate,
                                     start_time,
                                     end_time,
@@ -1436,7 +1436,7 @@ def plugin_wrapper_mtrack():
                                 [
                                     index,
                                     rate,
-                                    0,
+                                    None,
                                     start_time,
                                     end_time,
                                     cat_frequ,
@@ -1447,7 +1447,7 @@ def plugin_wrapper_mtrack():
                             data.append(
                                 [
                                     index,
-                                    0,
+                                    None,
                                     rate,
                                     start_time,
                                     end_time,
