@@ -3,7 +3,6 @@ try:
 except ImportError:
     __version__ = "unknown"
 
-from ._plot_widget import MTrackPlot
 from ._reader import napari_get_reader
 from ._sample_data import make_sample_data
 from ._table_widget import MTrackTable
@@ -17,5 +16,4 @@ __all__ = (
     "make_sample_data",
     "plugin_wrapper_mtrack",
     "MTrackTable",
-    "MTrackPlot",
 )

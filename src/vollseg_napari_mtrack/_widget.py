@@ -12,8 +12,12 @@ from typing import List, Set, Union
 import napari
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from magicgui import magicgui
 from magicgui import widgets as mw
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+)
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
@@ -32,7 +36,6 @@ def plugin_wrapper_mtrack():
     from vollseg.pretrained import get_model_folder, get_registered_models
 
     from ._data_model import pandasModel
-    from ._plot_widget import MTrackPlot
     from ._table_widget import MTrackTable
 
     DEBUG = False
@@ -675,7 +678,11 @@ def plugin_wrapper_mtrack():
     _parameter_ransac_tab_layout.addWidget(plugin_ransac_parameters.native)
     tabs.addTab(parameter_ransac_tab, "Ransac Parameter Selection")
 
-    plot_tab = MTrackPlot()
+    canvas = FigureCanvas()
+    canvas.figure.set_tight_layout(True)
+    ax = canvas.figure.subplots(2, 2)
+
+    plot_tab = canvas
     _plot_tab_layout = QVBoxLayout()
     plot_tab.setLayout(_plot_tab_layout)
     _plot_tab_layout.addWidget(plot_tab)
@@ -762,10 +769,29 @@ def plugin_wrapper_mtrack():
     def _deleteRows(rows: Set[int]):
         table_tab.myModel.myDeleteRows(rows)
 
-    def _refreshPlotData():
+    def _refreshPlotData(df):
 
-        df = table_tab.myModel._data
-        plot_tab.setmyPlotModel(df)
+        for i in range(ax.shape[0]):
+            for j in range(ax.shape[1]):
+                ax[i, j].cla()
+
+        sns.violinplot(x="Growth_Rate", data=df, ax=ax[0, 0])
+
+        ax[0, 0].set_xlabel("Growth Rate")
+
+        sns.violinplot(x="Shrink_Rate", data=df, ax=ax[0, 1])
+
+        ax[0, 1].set_xlabel("Shrink Rate")
+
+        sns.violinplot(x="Catastrophe Frequency", data=df, ax=ax[1, 0])
+
+        ax[1, 0].set_xlabel("Catastrophe Frequency")
+
+        sns.violinplot(x="Rescue Frequency", data=df, ax=ax[1, 1])
+
+        ax[1, 1].set_xlabel("Rescue Frequency")
+
+        canvas.draw()
 
     def _refreshTableData(df: pd.DataFrame):
         """Refresh all data in table by setting its data model from provided dataframe.
@@ -779,10 +805,10 @@ def plugin_wrapper_mtrack():
 
         if df is None:
             return
-
-        MTrackModel = pandasModel(df)
-        table_tab.mySetModel(MTrackModel)
-        _refreshPlotData()
+        if len(df["Growth_Rate"].values > 0):
+            MTrackModel = pandasModel(df)
+            table_tab.mySetModel(MTrackModel)
+            _refreshPlotData(df)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -1330,7 +1356,8 @@ def plugin_wrapper_mtrack():
     def rate_calculator(ndim: int):
 
         data = []
-
+        cat_frequ = 0
+        res_frequ = 0
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
@@ -1358,8 +1385,30 @@ def plugin_wrapper_mtrack():
                                 2 - plugin_ransac_parameters.time_axis.value
                             ]
                         ) / (end_time - start_time)
-
-                        data.append([index, rate, start_time, end_time])
+                        if rate >= 0:
+                            data.append(
+                                [
+                                    index,
+                                    rate,
+                                    0,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
+                        else:
+                            data.append(
+                                [
+                                    index,
+                                    0,
+                                    rate,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
                     if ndim == 2:
                         index = 0
                         start_time = int(
@@ -1382,11 +1431,42 @@ def plugin_wrapper_mtrack():
                                 1 - plugin_ransac_parameters.time_axis.value
                             ]
                         ) / (end_time - start_time)
-
-                        data.append([index, rate, start_time, end_time])
+                        if rate >= 0:
+                            data.append(
+                                [
+                                    index,
+                                    rate,
+                                    0,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
+                        else:
+                            data.append(
+                                [
+                                    index,
+                                    0,
+                                    rate,
+                                    start_time,
+                                    end_time,
+                                    cat_frequ,
+                                    res_frequ,
+                                ]
+                            )
 
             df = pd.DataFrame(
-                data, columns=["File Index", "Rate", "Start Time", "End Time"]
+                data,
+                columns=[
+                    "File_Index",
+                    "Growth_Rate",
+                    "Shrink_Rate",
+                    "Start_Time",
+                    "End_Time",
+                    "Catastrophe Frequency",
+                    "Rescue Frequency",
+                ],
             )
             _refreshTableData(df)
 

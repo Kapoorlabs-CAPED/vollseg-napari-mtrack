@@ -5,7 +5,7 @@ from qtpy import QtCore, QtWidgets
 
 
 class MTrackTable(QtWidgets.QTableView):
-    """Table view to display list of points in a point layer."""
+    """Table view to display list of measurments of kymographs."""
 
     signalSelectionChanged = QtCore.Signal(object, object)
     signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
