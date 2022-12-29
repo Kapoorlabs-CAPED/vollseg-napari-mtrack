@@ -8,6 +8,7 @@ class MTrackTable(QtWidgets.QTableView):
     """Table view to display list of points in a point layer."""
 
     signalSelectionChanged = QtCore.Signal(object, object)
+    signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
     """Emit when user changes row selection."""
 
     def __init__(self, parent=None):

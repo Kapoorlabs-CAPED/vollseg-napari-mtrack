@@ -7,7 +7,7 @@ Made by Kapoorlabs, 2022
 import functools
 import time
 from pathlib import Path
-from typing import List, Union
+from typing import List, Set, Union
 
 import napari
 import numpy as np
@@ -143,13 +143,6 @@ def plugin_wrapper_mtrack():
         persist=False,
         call_button=False,
     )
-    def plugin_table() -> List[napari.types.LayerDataTuple]:
-        return plugin_table
-
-    @magicgui(
-        persist=False,
-        call_button=False,
-    )
     def plugin_plots() -> List[napari.types.LayerDataTuple]:
         return plugin_plots
 
@@ -259,6 +252,9 @@ def plugin_wrapper_mtrack():
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
         ),
+        manual_compute_button=dict(
+            widget_type="PushButton", text="Recompute with manual functions"
+        ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=True,
@@ -275,6 +271,7 @@ def plugin_wrapper_mtrack():
         model_folder_vollseg,
         n_tiles,
         defaults_model_button,
+        manual_compute_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -658,7 +655,6 @@ def plugin_wrapper_mtrack():
                             [time[-1], estimator.predict(time[-1])],
                         ]
                     )
-                    print(line_locations, int(time[-1]), int(time[0]))
                 else:
                     time[-1] = time[-1] + 1
                     line_locations.append(
@@ -701,6 +697,34 @@ def plugin_wrapper_mtrack():
     plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
         "background-color: green"
     )
+    plugin.manual_compute_button.native.setStyleSheet(
+        "background-color: orange"
+    )
+
+    def _selectInTable(selected_data: Set[int]):
+        """Select in table in response to viewer (add, highlight).
+
+        Args:
+            selected_data (set[int]): Set of selected rows to select
+        """
+
+        MTrackTable.mySelectRows(selected_data)
+
+    def _slot_selection_changed(selectedRowList: List[int], isAlt: bool):
+        """Respond to user selecting a table row.
+        Note:
+            - This is coming from user selection in table,
+                we do not want to propogate
+        """
+
+        df = table_tab.myModel._data
+        selectedRowSet = set(selectedRowList)
+
+        print(df)
+        table_tab.signalDataChanged.emit("select", selectedRowSet, df)
+
+    def _deleteRows(rows: Set[int]):
+        MTrackTable.myModel.myDeleteRows(rows)
 
     def _refreshTableData(df: pd.DataFrame):
         """Refresh all data in table by setting its data model from provided dataframe.
@@ -717,6 +741,7 @@ def plugin_wrapper_mtrack():
 
         MTrackModel = pandasModel(df)
         table_tab.mySetModel(MTrackModel)
+        table_tab.signalSelectionChanged.connect(_slot_selection_changed)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -1165,6 +1190,13 @@ def plugin_wrapper_mtrack():
     def restore_model_defaults():
         for k, v in DEFAULTS_SEG_PARAMETERS.items():
             getattr(plugin, k).value = v
+
+    @change_handler(plugin.manual_compute_button)
+    def _manual_compute():
+
+        ndim = len(get_data(plugin.image.value).shape)
+
+        rate_calculator(ndim)
 
     @change_handler(plugin_ransac_parameters.recompute_current_button)
     def _recompute_current():

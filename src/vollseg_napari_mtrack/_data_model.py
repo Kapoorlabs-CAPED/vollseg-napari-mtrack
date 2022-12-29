@@ -159,7 +159,7 @@ class pandasModel(QtCore.QAbstractTableModel):
             print(f"index is not valid: {index}")
 
         theRet = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        isEditable = False
+        isEditable = True
         isCheckbox = False
         if isEditable:
             theRet |= QtCore.Qt.ItemIsEditable
