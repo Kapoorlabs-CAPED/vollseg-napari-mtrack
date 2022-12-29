@@ -1358,6 +1358,9 @@ def plugin_wrapper_mtrack():
         data = []
         cat_frequ = 0
         res_frequ = 0
+
+        cat_count = 0
+        total_time = 0
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
@@ -1365,6 +1368,7 @@ def plugin_wrapper_mtrack():
                 for shape_data in all_shape_layer_data:
                     if ndim == 3:
                         index = shape_data[0][0]
+                        cat_count = index
                         start_time = int(
                             shape_data[0][
                                 1 + plugin_ransac_parameters.time_axis.value
@@ -1376,7 +1380,8 @@ def plugin_wrapper_mtrack():
                             ]
                         )
                         if end_time == start_time:
-                            end_time = start_time + 1
+                            end_time = end_time + 1
+                            start_time = start_time - 1
                         rate = (
                             shape_data[1][
                                 2 - plugin_ransac_parameters.time_axis.value
@@ -1393,22 +1398,41 @@ def plugin_wrapper_mtrack():
                                     None,
                                     start_time,
                                     end_time,
-                                    cat_frequ,
+                                    None,
                                     res_frequ,
                                 ]
                             )
                         else:
-                            data.append(
-                                [
-                                    index,
-                                    None,
-                                    rate,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
-                            )
+
+                            if cat_count == index:
+                                cat_frequ = cat_frequ + 1
+                                total_time = total_time + end_time - start_time
+                                data.append(
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        None,
+                                        res_frequ,
+                                    ]
+                                )
+                            if cat_count != index:
+                                cat_frequ = cat_frequ / total_time
+                                total_time = 0
+                                data.append(
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        cat_frequ,
+                                        res_frequ,
+                                    ]
+                                )
+
                     if ndim == 2:
                         index = 0
                         start_time = int(
@@ -1422,7 +1446,8 @@ def plugin_wrapper_mtrack():
                             ]
                         )
                         if end_time == start_time:
-                            end_time = start_time + 1
+                            end_time = end_time + 1
+                            start_time = start_time - 1
                         rate = (
                             shape_data[1][
                                 1 - plugin_ransac_parameters.time_axis.value
@@ -1444,17 +1469,34 @@ def plugin_wrapper_mtrack():
                                 ]
                             )
                         else:
-                            data.append(
-                                [
-                                    index,
-                                    None,
-                                    rate,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
-                            )
+                            if cat_count == index:
+                                cat_frequ = cat_frequ + 1
+                                total_time = total_time + end_time - start_time
+                                data.append(
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        None,
+                                        res_frequ,
+                                    ]
+                                )
+                            if cat_count != index:
+                                cat_frequ = cat_frequ / total_time
+                                total_time = 0
+                                data.append(
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        cat_frequ,
+                                        res_frequ,
+                                    ]
+                                )
 
             df = pd.DataFrame(
                 data,
