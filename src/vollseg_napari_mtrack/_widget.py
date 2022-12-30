@@ -21,7 +21,7 @@ from matplotlib.backends.backend_qt5agg import (
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
-from scipy.ndimage.morphology import binary_erosion
+from scipy.ndimage.morphology import thin
 
 ITERATIONS = 20
 MAXTRIALS = 100
@@ -119,6 +119,7 @@ def plugin_wrapper_mtrack():
         min_num_time_points=2,
         minimum_height=4,
         time_axis=0,
+        microscope_calibration=(1, 1),
     )
 
     def get_model_ransac(ransac_model_type):
@@ -245,7 +246,7 @@ def plugin_wrapper_mtrack():
         microscope_calibration=dict(
             widget_type="LiteralEvalLineEdit",
             label="Microscope calibration/pixel size (TX)",
-            value=DEFAULTS_SEG_PARAMETERS["microscope_calibration"],
+            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration"],
         ),
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
@@ -440,7 +441,7 @@ def plugin_wrapper_mtrack():
 
             layer_data = np.zeros_like(unet_mask)
             for i in range(unet_mask.shape[0]):
-                layer_data[i] = binary_erosion(unet_mask[i])
+                layer_data[i] = thin(unet_mask[i])
 
         else:
             for layer in list(plugin.viewer.value.layers):
@@ -585,7 +586,7 @@ def plugin_wrapper_mtrack():
 
             unet_mask, skeleton, denoised_image = res
 
-            layer_data = binary_erosion(unet_mask)
+            layer_data = thin(unet_mask)
 
         else:
             for layer in list(plugin.viewer.value.layers):
