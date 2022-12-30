@@ -182,9 +182,6 @@ def plugin_wrapper_mtrack():
         defaults_params_button=dict(
             widget_type="PushButton", text="Restore Parameter Defaults"
         ),
-        recompute_current_button=dict(
-            widget_type="PushButton", text="Recompute current file fits"
-        ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
         persist=False,
@@ -197,7 +194,6 @@ def plugin_wrapper_mtrack():
         time_axis,
         ransac_model_type,
         defaults_params_button,
-        recompute_current_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -246,11 +242,19 @@ def plugin_wrapper_mtrack():
             label="Number of Tiles",
             value=DEFAULTS_SEG_PARAMETERS["n_tiles"],
         ),
+        microscope_calibration=dict(
+            widget_type="LiteralEvalLineEdit",
+            label="Microscope calibration/pixel size (TX)",
+            value=DEFAULTS_SEG_PARAMETERS["microscope_calibration"],
+        ),
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
         ),
         manual_compute_button=dict(
             widget_type="PushButton", text="Recompute with manual functions"
+        ),
+        recompute_current_button=dict(
+            widget_type="PushButton", text="Recompute current file fits"
         ),
         progress_bar=dict(label=" ", min=0, max=0, visible=False),
         layout="vertical",
@@ -267,8 +271,10 @@ def plugin_wrapper_mtrack():
         model_vollseg_none,
         model_folder_vollseg,
         n_tiles,
+        microscope_calibration,
         defaults_model_button,
         manual_compute_button,
+        recompute_current_button,
         progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
@@ -695,7 +701,7 @@ def plugin_wrapper_mtrack():
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)
-    plugin_ransac_parameters.recompute_current_button.native.setStyleSheet(
+    plugin.recompute_current_button.native.setStyleSheet(
         "background-color: green"
     )
     plugin.manual_compute_button.native.setStyleSheet(
@@ -890,7 +896,7 @@ def plugin_wrapper_mtrack():
                 )
 
                 if axes == "YX":
-                    plugin_ransac_parameters.recompute_current_button.hide()
+                    plugin.recompute_current_button.hide()
                 widgets_valid(
                     plugin.axes,
                     valid=(
@@ -1246,6 +1252,13 @@ def plugin_wrapper_mtrack():
     def _minimum_height(value: int):
         plugin_ransac_parameters.minimum_height.value = value
 
+    @change_handler(plugin_ransac_parameters.microscope_calibration)
+    def _microscope_calibration(value: tuple):
+        plugin_ransac_parameters.microscope_calibration.tooltip = (
+            "Enter the pixel unit to real unit conversion for T and X"
+        )
+        plugin_ransac_parameters.microscope_calibration = value
+
     @change_handler(plugin_ransac_parameters.time_axis)
     def _time_axis(value: int):
         plugin_ransac_parameters.time_axis.value = value
@@ -1267,7 +1280,7 @@ def plugin_wrapper_mtrack():
 
         rate_calculator(ndim)
 
-    @change_handler(plugin_ransac_parameters.recompute_current_button)
+    @change_handler(plugin.recompute_current_button)
     def _recompute_current():
 
         currentfile = plugin.viewer.value.dims.current_step[0]
@@ -1392,7 +1405,17 @@ def plugin_wrapper_mtrack():
                             ]
                         ) / (end_time - start_time)
                         total_time = total_time + end_time - start_time
+                        rate = (
+                            rate
+                            * plugin_ransac_parameters.microscope_calibration[
+                                1
+                            ]
+                            / plugin_ransac_parameters.microscope_calibration[
+                                0
+                            ]
+                        )
                         if rate >= 0 and len(all_shape_layer_data) > 1:
+
                             data.append(
                                 [
                                     index,
@@ -1430,6 +1453,12 @@ def plugin_wrapper_mtrack():
                             and rate < 0
                         ):
                             cat_frequ = cat_frequ / total_time
+                            cat_frequ = (
+                                cat_frequ
+                                / plugin_ransac_parameters.microscope_calibration[
+                                    0
+                                ]
+                            )
                             data.append(
                                 [
                                     index,
@@ -1447,6 +1476,13 @@ def plugin_wrapper_mtrack():
                             and rate >= 0
                         ):
                             cat_frequ = cat_frequ / total_time
+                            cat_frequ = (
+                                cat_frequ
+                                / plugin_ransac_parameters.microscope_calibration[
+                                    0
+                                ]
+                            )
+
                             data.append(
                                 [
                                     index,
@@ -1482,6 +1518,16 @@ def plugin_wrapper_mtrack():
                                 1 - plugin_ransac_parameters.time_axis.value
                             ]
                         ) / (end_time - start_time)
+
+                        rate = (
+                            rate
+                            * plugin_ransac_parameters.microscope_calibration[
+                                1
+                            ]
+                            / plugin_ransac_parameters.microscope_calibration[
+                                0
+                            ]
+                        )
                         total_time = total_time + end_time - start_time
                         if rate >= 0 and len(all_shape_layer_data) > 1:
                             data.append(
@@ -1517,6 +1563,13 @@ def plugin_wrapper_mtrack():
 
                         if s == len(all_shape_layer_data) - 1 and rate < 0:
                             cat_frequ = cat_frequ / total_time
+                            cat_frequ = (
+                                cat_frequ
+                                / plugin_ransac_parameters.microscope_calibration[
+                                    0
+                                ]
+                            )
+
                             data.append(
                                 [
                                     index,
@@ -1530,6 +1583,13 @@ def plugin_wrapper_mtrack():
                             )
                         if s == len(all_shape_layer_data) - 1 and rate >= 0:
                             cat_frequ = cat_frequ / total_time
+                            cat_frequ = (
+                                cat_frequ
+                                / plugin_ransac_parameters.microscope_calibration[
+                                    0
+                                ]
+                            )
+
                             data.append(
                                 [
                                     index,
@@ -1577,11 +1637,11 @@ def plugin_wrapper_mtrack():
         if ndim == 3:
             axes = "TYX"
             plugin.n_tiles.value = (1, 1, 1)
-            plugin_ransac_parameters.recompute_current_button.show()
+            plugin.recompute_current_button.show()
         elif ndim == 2 and ndim_model == 2:
             axes = "YX"
             plugin.n_tiles.value = (1, 1)
-            plugin_ransac_parameters.recompute_current_button.hide()
+            plugin.recompute_current_button.hide()
 
         else:
             raise NotImplementedError()
