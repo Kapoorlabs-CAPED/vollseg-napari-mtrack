@@ -1241,11 +1241,12 @@ def plugin_wrapper_mtrack():
         plugin_ransac_parameters.min_num_time_points.value = value
 
     @change_handler(plugin_ransac_parameters.microscope_calibration)
-    def _microscope_calibration(value: tuple):
+    def _microscope_calibration():
         plugin_ransac_parameters.microscope_calibration.tooltip = (
             "Enter the pixel unit to real unit conversion for T and X"
         )
-        plugin_ransac_parameters.microscope_calibration = value
+        value = plugin_ransac_parameters.microscope_calibration.get_value()
+        f"calibraiton in TX is {value}"
 
     @change_handler(plugin_ransac_parameters.time_axis)
     def _time_axis(value: int):
@@ -1358,7 +1359,8 @@ def plugin_wrapper_mtrack():
         data = []
         cat_frequ = 0
         res_frequ = 0
-
+        min_start_height = np.inf
+        total_depol_time = 0
         total_time = 0
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
@@ -1366,11 +1368,14 @@ def plugin_wrapper_mtrack():
 
                 for s in range(len(all_shape_layer_data)):
                     shape_data = all_shape_layer_data[s]
-                    if s + 1 < len(all_shape_layer_data):
-                        next_shape_data = all_shape_layer_data[s + 1]
-                        next_index = next_shape_data[0][0]
+
                     if ndim == 3:
                         index = shape_data[0][0]
+                        next_index = index
+                        if s + 1 < len(all_shape_layer_data):
+                            next_shape_data = all_shape_layer_data[s + 1]
+                            next_index = next_shape_data[0][0]
+
                         start_time = int(
                             shape_data[0][
                                 1 + plugin_ransac_parameters.time_axis.value
@@ -1392,13 +1397,26 @@ def plugin_wrapper_mtrack():
                                 2 - plugin_ransac_parameters.time_axis.value
                             ]
                         ) / (end_time - start_time)
+
                         total_time = total_time + end_time - start_time
+
+                        start_height = shape_data[1][
+                            2 - plugin_ransac_parameters.time_axis.value
+                        ]
+
+                        if start_height < min_start_height:
+                            min_start_height = start_height
+
+                        if s > 0:
+                            if start_height > min_start_height:
+                                res_frequ = res_frequ + 1
+
                         rate = (
                             rate
-                            * plugin_ransac_parameters.microscope_calibration[
+                            * plugin_ransac_parameters.microscope_calibration.value[
                                 1
                             ]
-                            / plugin_ransac_parameters.microscope_calibration[
+                            / plugin_ransac_parameters.microscope_calibration.value[
                                 0
                             ]
                         )
@@ -1412,12 +1430,15 @@ def plugin_wrapper_mtrack():
                                     start_time,
                                     end_time,
                                     None,
-                                    res_frequ,
+                                    None,
                                 ]
                             )
-                        else:
+                        elif rate < 0:
 
                             cat_frequ = cat_frequ + 1
+                            total_depol_time = (
+                                total_depol_time + end_time - start_time
+                            )
 
                             if (
                                 next_index == index
@@ -1432,7 +1453,7 @@ def plugin_wrapper_mtrack():
                                         start_time,
                                         end_time,
                                         None,
-                                        res_frequ,
+                                        None,
                                     ]
                                 )
                         if (
@@ -1443,7 +1464,15 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration[
+                                / plugin_ransac_parameters.microscope_calibration.value[
+                                    0
+                                ]
+                            )
+
+                            res_frequ = res_frequ / total_depol_time
+                            res_frequ = (
+                                res_frequ
+                                / plugin_ransac_parameters.microscope_calibration.value[
                                     0
                                 ]
                             )
@@ -1458,6 +1487,12 @@ def plugin_wrapper_mtrack():
                                     res_frequ,
                                 ]
                             )
+
+                            cat_frequ = 0
+                            res_frequ = 0
+
+                            total_depol_time = 0
+                            total_time = 0
                         if (
                             next_index != index
                             or s == len(all_shape_layer_data) - 1
@@ -1466,7 +1501,14 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration[
+                                / plugin_ransac_parameters.microscope_calibration.value[
+                                    0
+                                ]
+                            )
+                            res_frequ = res_frequ / total_depol_time
+                            res_frequ = (
+                                res_frequ
+                                / plugin_ransac_parameters.microscope_calibration.value[
                                     0
                                 ]
                             )
@@ -1482,6 +1524,12 @@ def plugin_wrapper_mtrack():
                                     res_frequ,
                                 ]
                             )
+
+                            cat_frequ = 0
+                            res_frequ = 0
+
+                            total_depol_time = 0
+                            total_time = 0
 
                     if ndim == 2:
                         index = 0
@@ -1509,10 +1557,10 @@ def plugin_wrapper_mtrack():
 
                         rate = (
                             rate
-                            * plugin_ransac_parameters.microscope_calibration[
+                            * plugin_ransac_parameters.microscope_calibration.value[
                                 1
                             ]
-                            / plugin_ransac_parameters.microscope_calibration[
+                            / plugin_ransac_parameters.microscope_calibration.value[
                                 0
                             ]
                         )
@@ -1526,7 +1574,7 @@ def plugin_wrapper_mtrack():
                                     start_time,
                                     end_time,
                                     None,
-                                    res_frequ,
+                                    None,
                                 ]
                             )
                         else:
@@ -1545,7 +1593,7 @@ def plugin_wrapper_mtrack():
                                         start_time,
                                         end_time,
                                         None,
-                                        res_frequ,
+                                        None,
                                     ]
                                 )
 
@@ -1553,7 +1601,18 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration[
+                                / plugin_ransac_parameters.microscope_calibration.value[
+                                    0
+                                ]
+                            )
+
+                            total_depol_time = (
+                                total_depol_time + end_time - start_time
+                            )
+                            res_frequ = res_frequ / total_depol_time
+                            res_frequ = (
+                                res_frequ
+                                / plugin_ransac_parameters.microscope_calibration.value[
                                     0
                                 ]
                             )
@@ -1573,7 +1632,14 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration[
+                                / plugin_ransac_parameters.microscope_calibration.value[
+                                    0
+                                ]
+                            )
+                            res_frequ = res_frequ / total_depol_time
+                            res_frequ = (
+                                res_frequ
+                                / plugin_ransac_parameters.microscope_calibration.value[
                                     0
                                 ]
                             )
