@@ -117,7 +117,6 @@ def plugin_wrapper_mtrack():
     DEFAULTS_PRED_PARAMETERS = dict(
         max_error=0.0001,
         min_num_time_points=2,
-        minimum_height=4,
         time_axis=0,
         microscope_calibration=(1, 1),
     )
@@ -1240,10 +1239,6 @@ def plugin_wrapper_mtrack():
     @change_handler(plugin_ransac_parameters.min_num_time_points)
     def _min_num_time_points(value: int):
         plugin_ransac_parameters.min_num_time_points.value = value
-
-    @change_handler(plugin_ransac_parameters.minimum_height)
-    def _minimum_height(value: int):
-        plugin_ransac_parameters.minimum_height.value = value
 
     @change_handler(plugin_ransac_parameters.microscope_calibration)
     def _microscope_calibration(value: tuple):
