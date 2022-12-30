@@ -1491,8 +1491,8 @@ def plugin_wrapper_mtrack():
                             cat_frequ = 0
                             res_frequ = 0
 
-                            total_depol_time = 0
-                            total_time = 0
+                            total_depol_time = 1
+                            total_time = 1
                         if (
                             next_index != index
                             or s == len(all_shape_layer_data) - 1
@@ -1528,8 +1528,8 @@ def plugin_wrapper_mtrack():
                             cat_frequ = 0
                             res_frequ = 0
 
-                            total_depol_time = 0
-                            total_time = 0
+                            total_depol_time = 1
+                            total_time = 1
 
                     if ndim == 2:
                         index = 0
