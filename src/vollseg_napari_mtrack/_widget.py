@@ -159,12 +159,10 @@ def plugin_wrapper_mtrack():
             step=1,
             value=DEFAULTS_PRED_PARAMETERS["min_num_time_points"],
         ),
-        minimum_height=dict(
-            widget_type="SpinBox",
-            label="Minimum height for catastrophe event",
-            min=0,
-            step=1,
-            value=DEFAULTS_PRED_PARAMETERS["minimum_height"],
+        microscope_calibration=dict(
+            widget_type="LiteralEvalLineEdit",
+            label="Microscope calibration/pixel size (TX)",
+            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration"],
         ),
         time_axis=dict(
             widget_type="SpinBox",
@@ -191,7 +189,7 @@ def plugin_wrapper_mtrack():
     def plugin_ransac_parameters(
         max_error,
         min_num_time_points,
-        minimum_height,
+        microscope_calibration,
         time_axis,
         ransac_model_type,
         defaults_params_button,
@@ -243,11 +241,6 @@ def plugin_wrapper_mtrack():
             label="Number of Tiles",
             value=DEFAULTS_SEG_PARAMETERS["n_tiles"],
         ),
-        microscope_calibration=dict(
-            widget_type="LiteralEvalLineEdit",
-            label="Microscope calibration/pixel size (TX)",
-            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration"],
-        ),
         defaults_model_button=dict(
             widget_type="PushButton", text="Restore Model Defaults"
         ),
@@ -272,7 +265,6 @@ def plugin_wrapper_mtrack():
         model_vollseg_none,
         model_folder_vollseg,
         n_tiles,
-        microscope_calibration,
         defaults_model_button,
         manual_compute_button,
         recompute_current_button,
