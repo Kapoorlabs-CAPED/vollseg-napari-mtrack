@@ -21,7 +21,7 @@ from matplotlib.backends.backend_qt5agg import (
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
-from scipy.ndimage.morphology import thin
+from skimage.morphology import thin
 
 ITERATIONS = 20
 MAXTRIALS = 100
