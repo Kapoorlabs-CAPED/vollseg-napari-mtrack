@@ -1245,8 +1245,8 @@ def plugin_wrapper_mtrack():
         plugin_ransac_parameters.microscope_calibration.tooltip = (
             "Enter the pixel unit to real unit conversion for T and X"
         )
-        value = plugin_ransac_parameters.microscope_calibration.get_value()
-        f"calibraiton in TX is {value}"
+        value = plugin_ransac_parameters.microscope_calibration.value
+        print(f"calibraiton in TX is {value}")
 
     @change_handler(plugin_ransac_parameters.time_axis)
     def _time_axis(value: int):
@@ -1360,8 +1360,8 @@ def plugin_wrapper_mtrack():
         cat_frequ = 0
         res_frequ = 0
         min_start_height = np.inf
-        total_depol_time = 0
-        total_time = 0
+        total_depol_time = 1
+        total_time = 1
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
