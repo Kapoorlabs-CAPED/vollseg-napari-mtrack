@@ -1386,6 +1386,7 @@ def plugin_wrapper_mtrack():
                                 1 + plugin_ransac_parameters.time_axis.value
                             ]
                         )
+
                         if end_time == start_time:
                             end_time = end_time + 1
                             start_time = start_time - 1
@@ -1396,9 +1397,9 @@ def plugin_wrapper_mtrack():
                             - shape_data[0][
                                 2 - plugin_ransac_parameters.time_axis.value
                             ]
-                        ) / (end_time - start_time)
+                        ) / abs(end_time - start_time)
 
-                        total_time = total_time + end_time - start_time
+                        total_time = total_time + abs(end_time - start_time)
 
                         start_height = shape_data[1][
                             2 - plugin_ransac_parameters.time_axis.value
@@ -1436,8 +1437,8 @@ def plugin_wrapper_mtrack():
                         elif rate < 0:
 
                             cat_frequ = cat_frequ + 1
-                            total_depol_time = (
-                                total_depol_time + end_time - start_time
+                            total_depol_time = total_depol_time + abs(
+                                end_time - start_time
                             )
 
                             if (
@@ -1564,7 +1565,7 @@ def plugin_wrapper_mtrack():
                                 0
                             ]
                         )
-                        total_time = total_time + end_time - start_time
+                        total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
                             data.append(
                                 [
@@ -1606,8 +1607,8 @@ def plugin_wrapper_mtrack():
                                 ]
                             )
 
-                            total_depol_time = (
-                                total_depol_time + end_time - start_time
+                            total_depol_time = total_depol_time + abs(
+                                end_time - start_time
                             )
                             res_frequ = res_frequ / total_depol_time
                             res_frequ = (
