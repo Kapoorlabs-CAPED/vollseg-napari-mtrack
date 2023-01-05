@@ -15,9 +15,6 @@ import pandas as pd
 import seaborn as sns
 from magicgui import magicgui
 from magicgui import widgets as mw
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-)
 from napari.qt.threading import thread_worker
 from psygnal import Signal
 from qtpy.QtWidgets import QSizePolicy, QTabWidget, QVBoxLayout, QWidget
@@ -37,6 +34,7 @@ def plugin_wrapper_mtrack():
 
     from ._data_model import pandasModel
     from ._table_widget import MTrackTable
+    from ._temporal_plots import TemporalStatistics
 
     DEBUG = False
 
@@ -316,10 +314,11 @@ def plugin_wrapper_mtrack():
             )
             worker.returned.connect(return_segment_unet_time)
             worker.yielded.connect(progress_thread)
-
+            worker
         else:
             worker = _Unet(vollseg_model, x, axes, scale_out, ransac_model)
             worker.returned.connect(return_segment_unet)
+            worker = None
 
         progress_bar.hide()
 
@@ -350,6 +349,9 @@ def plugin_wrapper_mtrack():
 
         rate_calculator(ndim)
 
+    def plot_main():
+        _refreshPlotData(table_tab.myModel._data)
+
     def return_segment_unet(pred):
 
         layer_data, line_locations, scale_out = pred
@@ -372,13 +374,12 @@ def plugin_wrapper_mtrack():
 
         rate_calculator(ndim)
 
-    @thread_worker(connect={"returned": return_segment_unet_time})
+    @thread_worker(connect={"returned": [return_segment_unet_time, plot_main]})
     def _Unet_time(
         model_unet, x_reorder, axes_reorder, scale_out, t, x, ransac_model
     ):
         pre_res = []
         yield 0
-
         correct_label_present = []
         any_label_present = []
         for layer in list(plugin.viewer.value.layers):
@@ -542,7 +543,7 @@ def plugin_wrapper_mtrack():
         pred = layer_data, time_line_locations, scale_out
         return pred
 
-    @thread_worker(connect={"returned": return_segment_unet})
+    @thread_worker(connect={"returned": [return_segment_unet, plot_main]})
     def _Unet(model_unet, x, axes, scale_out, ransac_model):
 
         correct_label_present = []
@@ -676,14 +677,8 @@ def plugin_wrapper_mtrack():
     _parameter_ransac_tab_layout.addWidget(plugin_ransac_parameters.native)
     tabs.addTab(parameter_ransac_tab, "Ransac Parameter Selection")
 
-    canvas = FigureCanvas()
-    canvas.figure.set_tight_layout(True)
-    ax = canvas.figure.subplots(2, 2)
-
-    plot_tab = canvas
-    _plot_tab_layout = QVBoxLayout()
-    plot_tab.setLayout(_plot_tab_layout)
-    _plot_tab_layout.addWidget(plot_tab)
+    plot_class = TemporalStatistics(tabs)
+    plot_tab = plot_class.stat_plot_tab
     tabs.addTab(plot_tab, "Ransac Plots")
 
     table_tab = MTrackTable()
@@ -769,27 +764,32 @@ def plugin_wrapper_mtrack():
 
     def _refreshPlotData(df):
 
-        for i in range(ax.shape[0]):
-            for j in range(ax.shape[1]):
-                ax[i, j].cla()
+        plot_class._repeat_after_plot()
+        ax = plot_class.stat_ax
+        ax.cla()
 
-        sns.violinplot(x="Growth_Rate", data=df, ax=ax[0, 0])
+        sns.violinplot(x="Growth_Rate", data=df, ax=ax)
 
-        ax[0, 0].set_xlabel("Growth Rate")
+        ax.set_xlabel("Growth Rate")
 
-        sns.violinplot(x="Shrink_Rate", data=df, ax=ax[0, 1])
+        plot_class._repeat_after_plot()
+        ax = plot_class.stat_ax
 
-        ax[0, 1].set_xlabel("Shrink Rate")
+        sns.violinplot(x="Shrink_Rate", data=df, ax=ax)
 
-        sns.violinplot(x="Catastrophe Frequency", data=df, ax=ax[1, 0])
+        ax.set_xlabel("Shrink Rate")
 
-        ax[1, 0].set_xlabel("Catastrophe Frequency")
+        plot_class._repeat_after_plot()
+        ax = plot_class.stat_ax
+        sns.violinplot(x="Catastrophe_Frequency", data=df, ax=ax)
 
-        sns.violinplot(x="Rescue Frequency", data=df, ax=ax[1, 1])
+        ax.set_xlabel("Catastrophe Frequency")
 
-        ax[1, 1].set_xlabel("Rescue Frequency")
+        plot_class._repeat_after_plot()
+        ax = plot_class.stat_ax
+        sns.violinplot(x="Rescue_Frequency", data=df, ax=ax)
 
-        canvas.draw()
+        ax.set_xlabel("Rescue Frequency")
 
     def _refreshTableData(df: pd.DataFrame):
         """Refresh all data in table by setting its data model from provided dataframe.
@@ -805,7 +805,6 @@ def plugin_wrapper_mtrack():
             return
         MTrackModel = pandasModel(df)
         table_tab.mySetModel(MTrackModel)
-        _refreshPlotData(df)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -1665,8 +1664,8 @@ def plugin_wrapper_mtrack():
                     "Shrink_Rate",
                     "Start_Time",
                     "End_Time",
-                    "Catastrophe Frequency",
-                    "Rescue Frequency",
+                    "Catastrophe_Frequency",
+                    "Rescue_Frequency",
                 ],
             )
             _refreshTableData(df)
