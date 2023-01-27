@@ -1298,7 +1298,10 @@ def plugin_wrapper_mtrack():
 
     def rate_calculator(ndim: int):
 
-        data = []
+        growth_events = []
+        shrink_events = []
+        cat_events = []
+        res_events = []
         cat_frequ = 0
         res_frequ = 0
         min_start_height = np.inf
@@ -1362,19 +1365,13 @@ def plugin_wrapper_mtrack():
                                 + 1.0e-10
                             )
                         )
+
                         if rate >= 0 and len(all_shape_layer_data) > 1:
 
-                            data.append(
-                                [
-                                    index,
-                                    rate,
-                                    None,
-                                    start_time,
-                                    end_time,
-                                    None,
-                                    None,
-                                ]
+                            growth_events.append(
+                                [index, rate, start_time, end_time]
                             )
+
                         elif rate < 0:
 
                             cat_frequ = cat_frequ + 1
@@ -1387,21 +1384,14 @@ def plugin_wrapper_mtrack():
                                 or s < len(all_shape_layer_data) - 1
                                 and len(all_shape_layer_data) > 1
                             ):
-                                data.append(
-                                    [
-                                        index,
-                                        None,
-                                        rate,
-                                        start_time,
-                                        end_time,
-                                        None,
-                                        None,
-                                    ]
+
+                                shrink_events.append(
+                                    [index, rate, start_time, end_time]
                                 )
+
                         if (
                             next_index != index
                             or s == len(all_shape_layer_data) - 1
-                            and rate < 0
                         ):
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
@@ -1414,56 +1404,22 @@ def plugin_wrapper_mtrack():
                                 plugin.microscope_calibration_time.value
                                 + 1.0e-10
                             )
-                            data.append(
-                                [
-                                    index,
-                                    None,
-                                    rate,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
-                            )
+
+                            cat_events.append([index, cat_frequ])
+                            res_events.append([index, res_frequ])
 
                             cat_frequ = 0
                             res_frequ = 0
 
                             total_depol_time = 1
                             total_time = 1
-                        if (
-                            next_index != index
-                            or s == len(all_shape_layer_data) - 1
-                            and rate >= 0
-                        ):
-                            cat_frequ = cat_frequ / total_time
-                            cat_frequ = cat_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
-                            )
-                            res_frequ = res_frequ / total_depol_time
-                            res_frequ = res_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
-                            )
 
-                            data.append(
-                                [
-                                    index,
-                                    rate,
-                                    None,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
+                            data_rates = np.vstack(
+                                (growth_events, shrink_events)
                             )
-
-                            cat_frequ = 0
-                            res_frequ = 0
-
-                            total_depol_time = 1
-                            total_time = 1
+                            data = np.concatenate(
+                                data_rates, cat_events, res_events
+                            )
 
                     if ndim == 2:
                         index = 0
@@ -1499,16 +1455,8 @@ def plugin_wrapper_mtrack():
                         )
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
-                            data.append(
-                                [
-                                    index,
-                                    rate,
-                                    None,
-                                    start_time,
-                                    end_time,
-                                    None,
-                                    None,
-                                ]
+                            growth_events.append(
+                                [index, rate, start_time, end_time]
                             )
                         else:
 
@@ -1518,19 +1466,11 @@ def plugin_wrapper_mtrack():
                                 and len(all_shape_layer_data) > 1
                             ):
 
-                                data.append(
-                                    [
-                                        index,
-                                        None,
-                                        rate,
-                                        start_time,
-                                        end_time,
-                                        None,
-                                        None,
-                                    ]
+                                shrink_events.append(
+                                    [index, rate, start_time, end_time]
                                 )
 
-                        if s == len(all_shape_layer_data) - 1 and rate < 0:
+                        if s == len(all_shape_layer_data) - 1:
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
@@ -1549,44 +1489,14 @@ def plugin_wrapper_mtrack():
                                     0
                                 ]
                             )
+                            cat_events.append([index, cat_frequ])
+                            res_events.append([index, res_frequ])
 
-                            data.append(
-                                [
-                                    index,
-                                    None,
-                                    rate,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
+                            data_rates = np.vstack(
+                                (growth_events, shrink_events)
                             )
-                        if s == len(all_shape_layer_data) - 1 and rate >= 0:
-                            cat_frequ = cat_frequ / total_time
-                            cat_frequ = (
-                                cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
-                            )
-                            res_frequ = res_frequ / total_depol_time
-                            res_frequ = (
-                                res_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
-                            )
-
-                            data.append(
-                                [
-                                    index,
-                                    rate,
-                                    None,
-                                    start_time,
-                                    end_time,
-                                    cat_frequ,
-                                    res_frequ,
-                                ]
+                            data = np.concatenate(
+                                data_rates, cat_events, res_events
                             )
 
             df = pd.DataFrame(
