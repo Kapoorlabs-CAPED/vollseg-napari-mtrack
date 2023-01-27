@@ -115,7 +115,8 @@ def plugin_wrapper_mtrack():
         max_error=0.0001,
         min_num_time_points=2,
         time_axis=0,
-        microscope_calibration=(1, 1),
+        microscope_calibration_space=1,
+        microscope_calibration_time=1,
     )
 
     def get_model_ransac(ransac_model_type):
@@ -155,11 +156,6 @@ def plugin_wrapper_mtrack():
             step=1,
             value=DEFAULTS_PRED_PARAMETERS["min_num_time_points"],
         ),
-        microscope_calibration=dict(
-            widget_type="LiteralEvalLineEdit",
-            label="Microscope calibration/pixel size (TX)",
-            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration"],
-        ),
         time_axis=dict(
             widget_type="SpinBox",
             label="Kymograph time axis (0 for along y, 1 for along x)",
@@ -185,7 +181,6 @@ def plugin_wrapper_mtrack():
     def plugin_ransac_parameters(
         max_error,
         min_num_time_points,
-        microscope_calibration,
         time_axis,
         ransac_model_type,
         defaults_params_button,
@@ -232,6 +227,16 @@ def plugin_wrapper_mtrack():
             label="Custom VollSeg",
             mode="d",
         ),
+        microscope_calibration_space=dict(
+            widget_type="SpinBox",
+            label="Pixel size space (X)",
+            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_space"],
+        ),
+        microscope_calibration_time=dict(
+            widget_type="SpinBox",
+            label="Calibration time (T)",
+            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_time"],
+        ),
         n_tiles=dict(
             widget_type="LiteralEvalLineEdit",
             label="Number of Tiles",
@@ -260,6 +265,8 @@ def plugin_wrapper_mtrack():
         model_vollseg,
         model_vollseg_none,
         model_folder_vollseg,
+        microscope_calibration_space,
+        microscope_calibration_time,
         n_tiles,
         defaults_model_button,
         manual_compute_button,
@@ -1236,13 +1243,21 @@ def plugin_wrapper_mtrack():
     def _min_num_time_points(value: int):
         plugin_ransac_parameters.min_num_time_points.value = value
 
-    @change_handler(plugin_ransac_parameters.microscope_calibration)
-    def _microscope_calibration():
-        plugin_ransac_parameters.microscope_calibration.tooltip = (
-            "Enter the pixel unit to real unit conversion for T and X"
+    @change_handler(plugin.microscope_calibration_space)
+    def _microscope_calibration_space(value):
+        plugin_ransac_parameters.microscope_calibration_space.tooltip = (
+            "Enter the pixel unit to real unit conversion for X"
         )
-        value = plugin_ransac_parameters.microscope_calibration.value
-        print(f"calibraiton in TX is {value}")
+        plugin.microscope_calibration_space.value = value
+        print(f"calibraiton in X is {value}")
+
+    @change_handler(plugin.microscope_calibration_time)
+    def _microscope_calibration_time(value):
+        plugin_ransac_parameters.microscope_calibration_time.tooltip = (
+            "Enter the pixel unit to real unit conversion for T"
+        )
+        plugin.microscope_calibration_time.value = value
+        print(f"calibraiton in T is {value}")
 
     @change_handler(plugin_ransac_parameters.time_axis)
     def _time_axis(value: int):
@@ -1410,12 +1425,8 @@ def plugin_wrapper_mtrack():
 
                         rate = (
                             rate
-                            * plugin_ransac_parameters.microscope_calibration.value[
-                                1
-                            ]
-                            / plugin_ransac_parameters.microscope_calibration.value[
-                                0
-                            ]
+                            * plugin.microscope_calibration_space.value
+                            / plugin.microscope_calibration_time.value
                         )
                         if rate >= 0 and len(all_shape_layer_data) > 1:
 
@@ -1461,17 +1472,13 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_space.value
                             )
 
                             res_frequ = res_frequ / total_depol_time
                             res_frequ = (
                                 res_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_time.value
                             )
                             data.append(
                                 [
@@ -1498,16 +1505,12 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_time.value
                             )
                             res_frequ = res_frequ / total_depol_time
                             res_frequ = (
                                 res_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_time.value
                             )
 
                             data.append(
@@ -1554,12 +1557,8 @@ def plugin_wrapper_mtrack():
 
                         rate = (
                             rate
-                            * plugin_ransac_parameters.microscope_calibration.value[
-                                1
-                            ]
-                            / plugin_ransac_parameters.microscope_calibration.value[
-                                0
-                            ]
+                            * plugin.microscope_calibration_space.value
+                            / plugin.microscope_calibration_time.value
                         )
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
