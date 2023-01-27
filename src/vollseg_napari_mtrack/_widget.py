@@ -355,7 +355,7 @@ def plugin_wrapper_mtrack():
         rate_calculator(ndim)
 
     def plot_main():
-        _refreshPlotData(table_tab.myModel._data)
+        _refreshPlotData(table_tab._data.get_data())
 
     def return_segment_unet(pred):
 
