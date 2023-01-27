@@ -144,7 +144,7 @@ def plugin_wrapper_mtrack():
         max_error=dict(
             widget_type="FloatSpinBox",
             label="Max error",
-            min=0.0000001,
+            min=0.00000000000001,
             step=0.0005,
             value=DEFAULTS_PRED_PARAMETERS["max_error"],
         ),
@@ -229,11 +229,15 @@ def plugin_wrapper_mtrack():
         microscope_calibration_space=dict(
             widget_type="SpinBox",
             label="Pixel size space (X)",
+            min=0.001,
+            step=0.05,
             value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_space"],
         ),
         microscope_calibration_time=dict(
             widget_type="SpinBox",
             label="Calibration time (T)",
+            min=0.001,
+            step=0.05,
             value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_time"],
         ),
         n_tiles=dict(
