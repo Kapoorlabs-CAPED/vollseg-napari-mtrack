@@ -13,6 +13,7 @@ import napari
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from caped_ai_tabulour._tabulour import Tabulour
 from magicgui import magicgui
 from magicgui import widgets as mw
 from napari.qt.threading import thread_worker
@@ -33,7 +34,6 @@ def plugin_wrapper_mtrack():
     from vollseg.pretrained import get_model_folder, get_registered_models
 
     from ._data_model import pandasModel
-    from ._table_widget import MTrackTable
     from ._temporal_plots import TemporalStatistics
 
     DEBUG = False
@@ -46,9 +46,8 @@ def plugin_wrapper_mtrack():
 
     def get_data(image, debug=DEBUG):
 
-        image = image.data[0] if image.multiscale else image.data
-        if debug:
-            print("image loaded")
+        image = image.data
+
         return np.asarray(image)
 
     def abspath(root, relpath):
@@ -681,10 +680,8 @@ def plugin_wrapper_mtrack():
     plot_tab = plot_class.stat_plot_tab
     tabs.addTab(plot_tab, "Ransac Plots")
 
-    table_tab = MTrackTable()
-    _table_tab_layout = QVBoxLayout()
-    table_tab.setLayout(_table_tab_layout)
-    _table_tab_layout.addWidget(table_tab)
+    table_tab = Tabulour()
+    table_tab.clicked.connect(table_tab._on_user_click)
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)

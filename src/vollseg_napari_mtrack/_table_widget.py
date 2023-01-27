@@ -25,7 +25,7 @@ class MTrackTable(QtWidgets.QTableView):
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )
-        self.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         self.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
