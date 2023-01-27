@@ -292,7 +292,6 @@ def plugin_wrapper_mtrack():
         scale_in_dict = dict(zip(axes, image.scale))
         scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
         ransac_model = get_model_ransac(model_selected_ransac)
-        plot_class._reset_container(plot_class.stat_canvas)
 
         if "T" in axes:
             t = axes_dict(axes)["T"]
@@ -358,6 +357,7 @@ def plugin_wrapper_mtrack():
         rate_calculator(ndim)
 
     def plot_main():
+        plot_class._reset_container(plot_class.lay)
         _refreshPlotData(table_tab._data.get_data())
 
     def return_segment_unet(pred):
