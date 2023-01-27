@@ -721,13 +721,13 @@ def plugin_wrapper_mtrack():
 
         plot_class._repeat_after_plot()
         ax = plot_class.stat_ax
-        sns.violinplot(x="Cat_Frequency", data=df, ax=ax)
+        sns.violinplot(x="Cat_Frequ", data=df, ax=ax)
 
         ax.set_xlabel("Catastrophe Frequency")
 
         plot_class._repeat_after_plot()
         ax = plot_class.stat_ax
-        sns.violinplot(x="Res_Frequency", data=df, ax=ax)
+        sns.violinplot(x="Res_Frequ", data=df, ax=ax)
 
         ax.set_xlabel("Rescue Frequency")
 
