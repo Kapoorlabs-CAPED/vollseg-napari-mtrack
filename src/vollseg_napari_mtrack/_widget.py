@@ -7,7 +7,7 @@ Made by Kapoorlabs, 2022
 import functools
 import time
 from pathlib import Path
-from typing import List, Set, Union
+from typing import List, Union
 
 import napari
 import numpy as np
@@ -699,73 +699,6 @@ def plugin_wrapper_mtrack():
         "background-color: orange"
     )
 
-    def _selectInTable(selected_data: Set[int]):
-        """Select in table in response to viewer (add, highlight).
-
-        Args:
-            selected_data (set[int]): Set of selected rows to select
-        """
-
-        table_tab.mySelectRows(selected_data)
-
-    def _slot_data_change(
-        action: str, selection: set, layerSelectionCopy: dict
-    ):
-
-        df = table_tab.myModel._data
-
-        if action == "select":
-            # TODO (cudmore) if Layer is labaeled then selection is a list
-            if isinstance(selection, list):
-                selection = set(selection)
-            _selectInTable(selection)
-            table_tab.signalDataChanged.emit(action, selection, df)
-
-        elif action == "add":
-            # addedRowList = selection
-            # myTableData = self.getLayerDataFrame(rowList=addedRowList)
-            myTableData = df
-            table_tab.myModel.myAppendRow(myTableData)
-            _selectInTable(selection)
-            table_tab.signalDataChanged.emit(action, selection, df)
-        elif action == "delete":
-            # was this
-            deleteRowSet = selection
-            # logger.info(f'myEventType:{myEventType} deleteRowSet:{deleteRowSet}')
-            # deletedDataFrame = self.myTable2.myModel.myGetData().iloc[list(deleteRowSet)]
-
-            _deleteRows(deleteRowSet)
-
-            # self._blockDeleteFromTable = True
-            # self.myTable2.myModel.myDeleteRows(deleteRowList)
-            # self._blockDeleteFromTable = False
-
-            table_tab.signalDataChanged.emit(action, selection, df)
-        elif action == "change":
-            moveRowList = list(selection)  # rowList is actually indexes
-            myTableData = df
-            # myTableData = self.getLayerDataFrame(rowList=moveRowList)
-            table_tab.myModel.mySetRow(moveRowList, myTableData)
-
-            table_tab.signalDataChanged.emit(action, selection, df)
-
-    def _slot_selection_changed(selectedRowList: List[int], isAlt: bool):
-        """Respond to user selecting a table row.
-        Note:
-            - This is coming from user selection in table,
-                we do not want to propogate
-        """
-
-        df = table_tab.myModel._data
-        # selectedRowSet = set(selectedRowList)
-
-        print(df)
-
-        # table_tab.signalDataChanged.emit("select", selectedRowSet, df)
-
-    def _deleteRows(rows: Set[int]):
-        table_tab.myModel.myDeleteRows(rows)
-
     def _refreshPlotData(df):
 
         plot_class._repeat_after_plot()
@@ -796,19 +729,11 @@ def plugin_wrapper_mtrack():
         ax.set_xlabel("Rescue Frequency")
 
     def _refreshTableData(df: pd.DataFrame):
-        """Refresh all data in table by setting its data model from provided dataframe.
-        Args:
-            df (pd.DataFrame): Pandas dataframe to refresh with.
-        """
 
-        if table_tab is None:
-            # interface has not been initialized
-            return
-
-        if df is None:
-            return
-        MTrackModel = pandasModel(df)
-        table_tab.mySetModel(MTrackModel)
+        table_tab.data = pandasModel(df)
+        table_tab.viewer = plugin.viewer.value
+        table_tab.time_key = "File_Index"
+        table_tab._set_model()
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
@@ -823,9 +748,6 @@ def plugin_wrapper_mtrack():
             widget.native.setStyleSheet(
                 "" if valid else "background-color: red"
             )
-
-    table_tab.signalDataChanged.connect(_slot_data_change)
-    table_tab.signalSelectionChanged.connect(_slot_selection_changed)
 
     class Updater:
         def __init__(self, debug=DEBUG):
