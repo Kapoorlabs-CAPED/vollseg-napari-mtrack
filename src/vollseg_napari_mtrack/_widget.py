@@ -229,15 +229,15 @@ def plugin_wrapper_mtrack():
         microscope_calibration_space=dict(
             widget_type="FloatSpinBox",
             label="Pixel size space (X)",
-            min=0.000000001,
-            step=0.05,
+            min=0.000001,
+            step=0.00005,
             value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_space"],
         ),
         microscope_calibration_time=dict(
             widget_type="FloatSpinBox",
             label="Calibration time (T)",
             min=0.000000001,
-            step=0.05,
+            step=0.00005,
             value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_time"],
         ),
         n_tiles=dict(
