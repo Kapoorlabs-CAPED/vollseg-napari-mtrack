@@ -357,7 +357,8 @@ def plugin_wrapper_mtrack():
         rate_calculator(ndim)
 
     def plot_main():
-        plot_class._reset_container(plot_class.lay)
+        if len(plot_class.scroll_layout.count) > 0:
+            plot_class._reset_container(plot_class.scroll_layout)
         _refreshPlotData(table_tab._data.get_data())
 
     def return_segment_unet(pred):
