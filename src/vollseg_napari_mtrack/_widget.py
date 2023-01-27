@@ -1370,7 +1370,15 @@ def plugin_wrapper_mtrack():
                         if rate >= 0 and len(all_shape_layer_data) > 1:
 
                             growth_events.append(
-                                [index, rate, start_time, end_time]
+                                [
+                                    index,
+                                    rate,
+                                    None,
+                                    start_time,
+                                    end_time,
+                                    None,
+                                    None,
+                                ]
                             )
 
                         elif rate < 0:
@@ -1387,7 +1395,15 @@ def plugin_wrapper_mtrack():
                             ):
 
                                 shrink_events.append(
-                                    [index, rate, start_time, end_time]
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        None,
+                                        None,
+                                    ]
                                 )
 
                         if (
@@ -1406,8 +1422,12 @@ def plugin_wrapper_mtrack():
                                 + 1.0e-10
                             )
 
-                            cat_events.append(cat_frequ)
-                            res_events.append(res_frequ)
+                            cat_events.append(
+                                [None, None, None, None, None, cat_frequ, None]
+                            )
+                            res_events.append(
+                                [None, None, None, None, None, None, res_frequ]
+                            )
 
                             cat_frequ = 0
                             res_frequ = 0
@@ -1415,16 +1435,16 @@ def plugin_wrapper_mtrack():
                             total_depol_time = 1
                             total_time = 1
 
-                            data_rates = np.vstack(
-                                (growth_events, shrink_events)
-                            )
-                            data = np.concatenate(
-                                data_rates,
-                                np.asarray(cat_events),
-                                np.asarray(res_events),
+                            data = np.vstack(
+                                (
+                                    growth_events,
+                                    shrink_events,
+                                    cat_events,
+                                    res_events,
+                                )
                             )
 
-                            print(data_rates, data)
+                            print(data)
 
                     if ndim == 2:
                         index = 0
@@ -1461,7 +1481,15 @@ def plugin_wrapper_mtrack():
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
                             growth_events.append(
-                                [index, rate, start_time, end_time]
+                                [
+                                    index,
+                                    rate,
+                                    None,
+                                    start_time,
+                                    end_time,
+                                    None,
+                                    None,
+                                ]
                             )
                         else:
 
@@ -1472,7 +1500,15 @@ def plugin_wrapper_mtrack():
                             ):
 
                                 shrink_events.append(
-                                    [index, rate, start_time, end_time]
+                                    [
+                                        index,
+                                        None,
+                                        rate,
+                                        start_time,
+                                        end_time,
+                                        None,
+                                        None,
+                                    ]
                                 )
 
                         if s == len(all_shape_layer_data) - 1:
@@ -1494,29 +1530,35 @@ def plugin_wrapper_mtrack():
                                     0
                                 ]
                             )
-                            cat_events.append([index, cat_frequ])
-                            res_events.append([index, res_frequ])
-
-                            data_rates = np.vstack(
-                                (growth_events, shrink_events)
+                            cat_events.append(
+                                [None, None, None, None, None, cat_frequ, None]
                             )
-                            data = np.concatenate(
-                                data_rates, cat_events, res_events
+                            res_events.append(
+                                [None, None, None, None, None, None, res_frequ]
                             )
 
-            df = pd.DataFrame(
-                data,
-                columns=[
-                    "File_Index",
-                    "Growth_Rate",
-                    "Shrink_Rate",
-                    "Start_Time",
-                    "End_Time",
-                    "Catastrophe_Frequency",
-                    "Rescue_Frequency",
-                ],
-            )
-            _refreshTableData(df)
+                            data = np.vstack(
+                                (
+                                    growth_events,
+                                    shrink_events,
+                                    cat_events,
+                                    res_events,
+                                )
+                            )
+
+        df = pd.DataFrame(
+            data,
+            columns=[
+                "File_Index",
+                "Growth_Rate",
+                "Shrink_Rate",
+                "Start_Time",
+                "End_Time",
+                "Catastrophe_Frequency",
+                "Rescue_Frequency",
+            ],
+        )
+        _refreshTableData(df)
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
