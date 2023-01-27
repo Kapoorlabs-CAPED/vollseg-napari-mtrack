@@ -1577,26 +1577,48 @@ def plugin_wrapper_mtrack():
                             )
 
         # Polish the data here
+        polish_data = _polish_data(data)
         print(data.shape)
 
         df = pd.DataFrame(
-            data,
+            polish_data,
             columns=[
                 "File_Index",
                 "Growth_Rate",
                 "Shrink_Rate",
                 "Start_Time",
                 "End_Time",
-                "Catastrophe_Frequency",
-                "Rescue_Frequency",
+                "Cat_Frequ",
+                "Res_Frequ",
             ],
         )
         _refreshTableData(df)
 
     def _polish_data(data: np.ndarray):
 
+        polish_data = []
         for i in range(data.shape[0]):
-            print(i)
+            index = data[i, 0]
+            growth = data[i, 1]
+            # shrink = data[i, 2]
+            # start = data[i, 3]
+            # end = data[i, 4]
+            # cat = data[i, 5]
+            # res = data[i, 6]
+
+            for j in range(data.shape[0]):
+                if j != i:
+                    sec_index = data[j, 0]
+                    sec_cat = data[j, 5]
+                    sec_res = data[j, 6]
+                    if sec_index == index and sec_cat is not None:
+                        data[i, 5] = sec_cat
+                    if sec_index == index and sec_res is not None:
+                        data[i, 6] = sec_res
+            if growth is not None:
+                polish_data.append(data[i])
+
+        return polish_data
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
