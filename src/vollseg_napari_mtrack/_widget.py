@@ -1298,10 +1298,10 @@ def plugin_wrapper_mtrack():
 
     def rate_calculator(ndim: int):
 
-        growth_events = []
-        shrink_events = []
-        cat_events = []
-        res_events = []
+        growth_events = [None, None, None, None, None, None, None]
+        shrink_events = [None, None, None, None, None, None, None]
+        cat_events = [None, None, None, None, None, None, None]
+        res_events = [None, None, None, None, None, None, None]
         data = []
         cat_frequ = 0
         res_frequ = 0
