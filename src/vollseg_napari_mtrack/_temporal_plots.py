@@ -55,3 +55,4 @@ class TemporalStatistics(QWidget):
                     child.widget().deleteLater()
                 elif child.layout() is not None:
                     self._reset_container(child.layout())
+            self.container = layout
