@@ -1460,8 +1460,6 @@ def plugin_wrapper_mtrack():
                                 )
                             )
 
-                            print(data)
-
                     if ndim == 2:
                         index = 0
                         start_time = int(
@@ -1578,6 +1576,9 @@ def plugin_wrapper_mtrack():
                                 )
                             )
 
+        # Polish the data here
+        print(data.shape)
+
         df = pd.DataFrame(
             data,
             columns=[
@@ -1591,6 +1592,11 @@ def plugin_wrapper_mtrack():
             ],
         )
         _refreshTableData(df)
+
+    def _polish_data(data: np.ndarray):
+
+        for i in range(data.shape[0]):
+            print(i)
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
