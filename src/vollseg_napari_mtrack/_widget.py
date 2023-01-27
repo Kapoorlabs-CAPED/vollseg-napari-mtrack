@@ -292,6 +292,7 @@ def plugin_wrapper_mtrack():
         scale_in_dict = dict(zip(axes, image.scale))
         scale_out = [scale_in_dict.get(a, 1.0) for a in axes_out]
         ransac_model = get_model_ransac(model_selected_ransac)
+        plot_class._reset_container()
 
         if "T" in axes:
             t = axes_dict(axes)["T"]
@@ -323,11 +324,9 @@ def plugin_wrapper_mtrack():
             )
             worker.returned.connect(return_segment_unet_time)
             worker.yielded.connect(progress_thread)
-            worker
         else:
             worker = _Unet(vollseg_model, x, axes, scale_out, ransac_model)
             worker.returned.connect(return_segment_unet)
-            worker = None
 
         progress_bar.hide()
 
