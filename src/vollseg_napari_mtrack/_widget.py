@@ -1423,10 +1423,26 @@ def plugin_wrapper_mtrack():
                             )
 
                             cat_events.append(
-                                [None, None, None, None, None, cat_frequ, None]
+                                [
+                                    index,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    cat_frequ,
+                                    None,
+                                ]
                             )
                             res_events.append(
-                                [None, None, None, None, None, None, res_frequ]
+                                [
+                                    index,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    res_frequ,
+                                ]
                             )
 
                             cat_frequ = 0
@@ -1531,10 +1547,26 @@ def plugin_wrapper_mtrack():
                                 ]
                             )
                             cat_events.append(
-                                [None, None, None, None, None, cat_frequ, None]
+                                [
+                                    index,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    cat_frequ,
+                                    None,
+                                ]
                             )
                             res_events.append(
-                                [None, None, None, None, None, None, res_frequ]
+                                [
+                                    index,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    res_frequ,
+                                ]
                             )
 
                             data = np.vstack(
