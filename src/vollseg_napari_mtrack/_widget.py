@@ -692,6 +692,7 @@ def plugin_wrapper_mtrack():
 
     table_tab = Tabulour()
     table_tab.clicked.connect(table_tab._on_user_click)
+    table_tab.clicked.connect(table_tab._save_file)
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)
