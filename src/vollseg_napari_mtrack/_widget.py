@@ -1357,7 +1357,10 @@ def plugin_wrapper_mtrack():
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / plugin.microscope_calibration_time.value
+                            / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
+                            )
                         )
                         if rate >= 0 and len(all_shape_layer_data) > 1:
 
@@ -1407,9 +1410,9 @@ def plugin_wrapper_mtrack():
                             )
 
                             res_frequ = res_frequ / total_depol_time
-                            res_frequ = (
-                                res_frequ
-                                / plugin.microscope_calibration_time.value
+                            res_frequ = res_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
                             data.append(
                                 [
@@ -1434,14 +1437,14 @@ def plugin_wrapper_mtrack():
                             and rate >= 0
                         ):
                             cat_frequ = cat_frequ / total_time
-                            cat_frequ = (
-                                cat_frequ
-                                / plugin.microscope_calibration_time.value
+                            cat_frequ = cat_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
                             res_frequ = res_frequ / total_depol_time
-                            res_frequ = (
-                                res_frequ
-                                / plugin.microscope_calibration_time.value
+                            res_frequ = res_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
 
                             data.append(
@@ -1489,7 +1492,10 @@ def plugin_wrapper_mtrack():
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / plugin.microscope_calibration_time.value
+                            / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
+                            )
                         )
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
