@@ -1302,6 +1302,7 @@ def plugin_wrapper_mtrack():
         shrink_events = []
         cat_events = []
         res_events = []
+        data = []
         cat_frequ = 0
         res_frequ = 0
         min_start_height = np.inf
@@ -1421,6 +1422,8 @@ def plugin_wrapper_mtrack():
                                 data_rates, cat_events, res_events
                             )
 
+                            print(data_rates, data)
+
                     if ndim == 2:
                         index = 0
                         start_time = int(
@@ -1499,19 +1502,19 @@ def plugin_wrapper_mtrack():
                                 data_rates, cat_events, res_events
                             )
 
-            df = pd.DataFrame(
-                data,
-                columns=[
-                    "File_Index",
-                    "Growth_Rate",
-                    "Shrink_Rate",
-                    "Start_Time",
-                    "End_Time",
-                    "Catastrophe_Frequency",
-                    "Rescue_Frequency",
-                ],
-            )
-            _refreshTableData(df)
+        df = pd.DataFrame(
+            data,
+            columns=[
+                "File_Index",
+                "Growth_Rate",
+                "Shrink_Rate",
+                "Start_Time",
+                "End_Time",
+                "Catastrophe_Frequency",
+                "Rescue_Frequency",
+            ],
+        )
+        _refreshTableData(df)
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
