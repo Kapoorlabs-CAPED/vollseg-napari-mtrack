@@ -721,13 +721,13 @@ def plugin_wrapper_mtrack():
 
         plot_class._repeat_after_plot()
         ax = plot_class.stat_ax
-        sns.violinplot(x="Catastrophe_Frequency", data=df, ax=ax)
+        sns.violinplot(x="Cat_Frequency", data=df, ax=ax)
 
         ax.set_xlabel("Catastrophe Frequency")
 
         plot_class._repeat_after_plot()
         ax = plot_class.stat_ax
-        sns.violinplot(x="Rescue_Frequency", data=df, ax=ax)
+        sns.violinplot(x="Res_Frequency", data=df, ax=ax)
 
         ax.set_xlabel("Rescue Frequency")
 
@@ -1600,7 +1600,7 @@ def plugin_wrapper_mtrack():
         for i in range(data.shape[0]):
             index = data[i, 0]
             growth = data[i, 1]
-            # shrink = data[i, 2]
+            shrink = data[i, 2]
             # start = data[i, 3]
             # end = data[i, 4]
             # cat = data[i, 5]
@@ -1615,7 +1615,7 @@ def plugin_wrapper_mtrack():
                         data[i, 5] = sec_cat
                     if sec_index == index and sec_res is not None:
                         data[i, 6] = sec_res
-            if growth is not None:
+            if growth is not None or shrink is not None:
                 polish_data.append(data[i])
 
         return polish_data
