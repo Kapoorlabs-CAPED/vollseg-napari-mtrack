@@ -1174,10 +1174,10 @@ def plugin_wrapper_mtrack():
             "Enter the pixel unit to real unit conversion for X"
         )
         plugin.microscope_calibration_space.value = value
-        print(f"calibraiton in X is {value}")
-        ndim = len(get_data(plugin.image.value).shape)
+        if plugin.image.value is not None:
+            ndim = len(get_data(plugin.image.value).shape)
 
-        rate_calculator(ndim)
+            rate_calculator(ndim)
 
     @change_handler(plugin.microscope_calibration_time)
     def _microscope_calibration_time(value: float):
@@ -1185,10 +1185,10 @@ def plugin_wrapper_mtrack():
             "Enter the pixel unit to real unit conversion for T"
         )
         plugin.microscope_calibration_time.value = value
-        print(f"calibraiton in T is {value}")
-        ndim = len(get_data(plugin.image.value).shape)
+        if plugin.image.value is not None:
+            ndim = len(get_data(plugin.image.value).shape)
 
-        rate_calculator(ndim)
+            rate_calculator(ndim)
 
     @change_handler(plugin_ransac_parameters.time_axis)
     def _time_axis(value: int):
