@@ -1406,8 +1406,8 @@ def plugin_wrapper_mtrack():
                                 + 1.0e-10
                             )
 
-                            cat_events.append([index, cat_frequ])
-                            res_events.append([index, res_frequ])
+                            cat_events.append(cat_frequ)
+                            res_events.append(res_frequ)
 
                             cat_frequ = 0
                             res_frequ = 0
@@ -1419,7 +1419,9 @@ def plugin_wrapper_mtrack():
                                 (growth_events, shrink_events)
                             )
                             data = np.concatenate(
-                                data_rates, cat_events, res_events
+                                data_rates,
+                                np.asarray(cat_events),
+                                np.asarray(res_events),
                             )
 
                             print(data_rates, data)
@@ -1502,19 +1504,19 @@ def plugin_wrapper_mtrack():
                                 data_rates, cat_events, res_events
                             )
 
-        df = pd.DataFrame(
-            data,
-            columns=[
-                "File_Index",
-                "Growth_Rate",
-                "Shrink_Rate",
-                "Start_Time",
-                "End_Time",
-                "Catastrophe_Frequency",
-                "Rescue_Frequency",
-            ],
-        )
-        _refreshTableData(df)
+            df = pd.DataFrame(
+                data,
+                columns=[
+                    "File_Index",
+                    "Growth_Rate",
+                    "Shrink_Rate",
+                    "Start_Time",
+                    "End_Time",
+                    "Catastrophe_Frequency",
+                    "Rescue_Frequency",
+                ],
+            )
+            _refreshTableData(df)
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
