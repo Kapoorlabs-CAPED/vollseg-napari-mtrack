@@ -13,7 +13,7 @@ import napari
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from caped_ai_tabulour._tabulour import Tabulour
+from caped_ai_tabulour._tabulour import Tabulour, pandasModel
 from magicgui import magicgui
 from magicgui import widgets as mw
 from napari.qt.threading import thread_worker
@@ -33,7 +33,6 @@ def plugin_wrapper_mtrack():
     from vollseg import UNET, VollSeg
     from vollseg.pretrained import get_model_folder, get_registered_models
 
-    from ._data_model import pandasModel
     from ._temporal_plots import TemporalStatistics
 
     DEBUG = False
