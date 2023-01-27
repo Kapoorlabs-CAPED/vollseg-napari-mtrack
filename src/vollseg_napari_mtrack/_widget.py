@@ -1533,18 +1533,18 @@ def plugin_wrapper_mtrack():
 
                         if s == len(all_shape_layer_data) - 1:
                             cat_frequ = cat_frequ / total_time
-                            cat_frequ = (
-                                cat_frequ
-                                / plugin.microscope_calibration_time.value
+                            cat_frequ = cat_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
 
                             total_depol_time = total_depol_time + abs(
                                 end_time - start_time
                             )
                             res_frequ = res_frequ / total_depol_time
-                            res_frequ = (
-                                res_frequ
-                                / plugin.microscope_calibration_time.value
+                            res_frequ = res_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
                             cat_events.append(
                                 [
@@ -1580,7 +1580,6 @@ def plugin_wrapper_mtrack():
 
         # Polish the data here
         polish_data = _polish_data(data)
-        print(data.shape)
 
         df = pd.DataFrame(
             polish_data,
