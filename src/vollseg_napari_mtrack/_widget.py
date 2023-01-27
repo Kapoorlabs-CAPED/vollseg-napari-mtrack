@@ -1414,13 +1414,15 @@ def plugin_wrapper_mtrack():
                             next_index != index
                             or s == len(all_shape_layer_data) - 1
                         ):
-                            cat_frequ = cat_frequ / total_time
-                            cat_frequ = (
-                                cat_frequ
-                                / plugin.microscope_calibration_space.value
+                            cat_frequ = cat_frequ / (total_time + 1.0e-10)
+                            cat_frequ = cat_frequ / (
+                                plugin.microscope_calibration_time.value
+                                + 1.0e-10
                             )
 
-                            res_frequ = res_frequ / total_depol_time
+                            res_frequ = res_frequ / (
+                                total_depol_time + 1.0e-10
+                            )
                             res_frequ = res_frequ / (
                                 plugin.microscope_calibration_time.value
                                 + 1.0e-10
@@ -1533,9 +1535,7 @@ def plugin_wrapper_mtrack():
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = (
                                 cat_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_time.value
                             )
 
                             total_depol_time = total_depol_time + abs(
@@ -1544,9 +1544,7 @@ def plugin_wrapper_mtrack():
                             res_frequ = res_frequ / total_depol_time
                             res_frequ = (
                                 res_frequ
-                                / plugin_ransac_parameters.microscope_calibration.value[
-                                    0
-                                ]
+                                / plugin.microscope_calibration_time.value
                             )
                             cat_events.append(
                                 [
