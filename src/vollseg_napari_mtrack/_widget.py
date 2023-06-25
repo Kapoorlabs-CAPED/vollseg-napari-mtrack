@@ -172,9 +172,6 @@ def plugin_wrapper_mtrack():
         defaults_params_button=dict(
             widget_type="PushButton", text="Restore Parameter Defaults"
         ),
-        progress_bar=dict(label=" ", min=0, max=0, visible=False),
-        layout="vertical",
-        persist=False,
         call_button=False,
     )
     def plugin_ransac_parameters(
@@ -183,7 +180,6 @@ def plugin_wrapper_mtrack():
         time_axis,
         ransac_model_type,
         defaults_params_button,
-        progress_bar: mw.ProgressBar,
     ) -> List[napari.types.LayerDataTuple]:
 
         return plugin_ransac_parameters
@@ -733,6 +729,8 @@ def plugin_wrapper_mtrack():
         table_tab.viewer = plugin.viewer.value
         table_tab.time_key = "File_Index"
         table_tab._set_model()
+        if plot_class.scroll_layout.count() > 0:
+            plot_class._reset_container(plot_class.scroll_layout)
         _refreshPlotData(df)
 
     def select_model_ransac(key):
