@@ -733,6 +733,7 @@ def plugin_wrapper_mtrack():
         table_tab.viewer = plugin.viewer.value
         table_tab.time_key = "File_Index"
         table_tab._set_model()
+        _refreshPlotData(df)
 
     def select_model_ransac(key):
         nonlocal model_selected_ransac
