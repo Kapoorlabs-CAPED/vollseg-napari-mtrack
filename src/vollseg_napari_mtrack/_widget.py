@@ -423,7 +423,7 @@ def plugin_wrapper_mtrack():
                     )
                 )
 
-            unet_mask, skeleton, denoised_image = zip(*pre_res)
+            unet_mask, skeleton = zip(*pre_res)
 
             unet_mask = np.asarray(unet_mask)
 
@@ -435,10 +435,6 @@ def plugin_wrapper_mtrack():
             skeleton = skeleton > 0
             skeleton = np.moveaxis(skeleton, 0, t)
             skeleton = np.reshape(skeleton, x.shape)
-
-            denoised_image = np.asarray(denoised_image)
-            denoised_image = np.moveaxis(denoised_image, 0, t)
-            denoised_image = np.reshape(denoised_image, x.shape)
 
             layer_data = np.zeros_like(unet_mask)
             for i in range(unet_mask.shape[0]):
@@ -585,7 +581,7 @@ def plugin_wrapper_mtrack():
                 axes=axes,
             )
 
-            unet_mask, skeleton, denoised_image = res
+            unet_mask, skeleton = res
 
             layer_data = thin(unet_mask)
 
