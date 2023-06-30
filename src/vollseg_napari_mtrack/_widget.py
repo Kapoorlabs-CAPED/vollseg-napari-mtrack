@@ -105,17 +105,15 @@ def plugin_wrapper_mtrack():
         model_vollseg_none="NOSEG",
         axes="TYX",
         ransac_model_type=LinearFunction,
+        microscope_calibration_space=1,
+        microscope_calibration_time=1,
     )
 
     model_selected_ransac = DEFAULTS_MODEL["ransac_model_type"]
     DEFAULTS_SEG_PARAMETERS = dict(n_tiles=(1, 1, 1))
 
     DEFAULTS_PRED_PARAMETERS = dict(
-        max_error=0.0001,
-        min_num_time_points=2,
-        time_axis=0,
-        microscope_calibration_space=1,
-        microscope_calibration_time=1,
+        max_error=0.0001, min_num_time_points=2, time_axis=0
     )
 
     def get_model_ransac(ransac_model_type):
@@ -227,14 +225,14 @@ def plugin_wrapper_mtrack():
             label="Pixel size space (X)",
             min=0.000001,
             step=0.00005,
-            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_space"],
+            value=DEFAULTS_MODEL["microscope_calibration_space"],
         ),
         microscope_calibration_time=dict(
             widget_type="FloatSpinBox",
             label="Calibration time (T)",
             min=0.000000001,
             step=0.00005,
-            value=DEFAULTS_PRED_PARAMETERS["microscope_calibration_time"],
+            value=DEFAULTS_MODEL["microscope_calibration_time"],
         ),
         n_tiles=dict(
             widget_type="LiteralEvalLineEdit",
