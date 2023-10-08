@@ -5,14 +5,8 @@ contributions:
     - id: vollseg-napari-mtrack.get_reader
       python_name: vollseg_napari_mtrack._reader:napari_get_reader
       title: Open data with VollSeg Napari MTrack Plugin
-    - id: vollseg-napari-mtrack.write_multiple
-      python_name: vollseg_napari_mtrack._writer:write_multiple
-      title: Save multi-layer data with VollSeg Napari MTrack Plugin
-    - id: vollseg-napari-mtrack.write_single_image
-      python_name: vollseg_napari_mtrack._writer:write_single_image
-      title: Save image data with VollSeg Napari MTrack Plugin
-    - id: vollseg-napari-mtrack.make_sample_data
-      python_name: vollseg_napari_mtrack._sample_data:make_sample_data
+    - id: vollseg-napari-mtrack.get_microtubule_test_data
+      python_name: vollseg_napari_mtrack._sample_data:get_microtubule_test_data
       title: Load sample data from VollSeg Napari MTrack Plugin
     - id: vollseg-napari-mtrack.widget
       python_name: vollseg_napari_mtrack._widget:plugin_wrapper_mtrack
@@ -22,17 +16,11 @@ contributions:
     - command: vollseg-napari-mtrack.get_reader
       accepts_directories: true
       filename_patterns: []
-  writers:
-    - command: vollseg-napari-mtrack.write_multiple
-      layer_types: ['image*','labels*']
-      filename_extensions: []
-    - command: vollseg-napari-mtrack.write_single_image
-      layer_types: ['image']
-      filename_extensions: ['.tif']
+
   sample_data:
-    - command: vollseg-napari-mtrack.make_sample_data
-      display_name: VollSeg Napari MTrack Plugin
-      key: unique_id.1
+    - key: get_microtubule_test_data
+      display_name: Test Microtubule Kymographs
+      command: vollseg-napari-mtrack.get_microtubule_test_data
   widgets:
     - command: vollseg-napari-mtrack.widget
       display_name: MTrack
