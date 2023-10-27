@@ -16,6 +16,8 @@
 - If results don't improve, manually fit using the Napari shapes layer and click "Recompute with manual functions."
 - View growth rates, shrink rates, catastrophe, and rescue frequency in the "Plot" and "Table" tabs.
 
+![plugin design](images/mtrack_plugin_look.jpg)
+
 ## Segmentation of Kymographs
 
 - Utilize a pre-trained U-Net model for kymograph segmentation.

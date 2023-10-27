@@ -211,9 +211,7 @@ def plugin_wrapper_mtrack():
             choices=models_vollseg,
             value=DEFAULTS_MODEL["model_vollseg"],
         ),
-        model_vollseg_none=dict(
-            widget_type="Label", visible=False, label="NOSEG"
-        ),
+        model_vollseg_none=dict(widget_type="Label", visible=False, label="NOSEG"),
         model_folder_vollseg=dict(
             widget_type="FileEdit",
             visible=False,
@@ -378,9 +376,7 @@ def plugin_wrapper_mtrack():
         rate_calculator(ndim)
 
     @thread_worker(connect={"returned": [return_segment_unet_time, plot_main]})
-    def _Unet_time(
-        model_unet, x_reorder, axes_reorder, scale_out, t, x, ransac_model
-    ):
+    def _Unet_time(model_unet, x_reorder, axes_reorder, scale_out, t, x, ransac_model):
         pre_res = []
         yield 0
         correct_label_present = []
@@ -401,10 +397,7 @@ def plugin_wrapper_mtrack():
                 any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
                 any_label_present.append(True)
-        if (
-            any(correct_label_present) is False
-            or any(any_label_present) is False
-        ):
+        if any(correct_label_present) is False or any(any_label_present) is False:
 
             for count, _x in enumerate(x_reorder):
 
@@ -563,10 +556,7 @@ def plugin_wrapper_mtrack():
                 any_label_present.append(False)
             elif isinstance(layer, napari.layers.Labels):
                 any_label_present.append(True)
-        if (
-            any(correct_label_present) is False
-            or any(any_label_present) is False
-        ):
+        if any(correct_label_present) is False or any(any_label_present) is False:
 
             res = VollSeg(
                 x,
@@ -685,12 +675,8 @@ def plugin_wrapper_mtrack():
     tabs.addTab(table_tab, "Table")
 
     plugin.native.layout().addWidget(tabs)
-    plugin.recompute_current_button.native.setStyleSheet(
-        "background-color: green"
-    )
-    plugin.manual_compute_button.native.setStyleSheet(
-        "background-color: orange"
-    )
+    plugin.recompute_current_button.native.setStyleSheet("background-color: green")
+    plugin.manual_compute_button.native.setStyleSheet("background-color: orange")
 
     def _refreshPlotData(df):
 
@@ -741,9 +727,7 @@ def plugin_wrapper_mtrack():
 
     def widgets_valid(*widgets, valid):
         for widget in widgets:
-            widget.native.setStyleSheet(
-                "" if valid else "background-color: red"
-            )
+            widget.native.setStyleSheet("" if valid else "background-color: red")
 
     class Updater:
         def __init__(self, debug=DEBUG):
@@ -751,10 +735,7 @@ def plugin_wrapper_mtrack():
 
             self.debug = debug
             self.valid = SimpleNamespace(
-                **{
-                    k: False
-                    for k in ("image_axes", "model_vollseg", "n_tiles")
-                }
+                **{k: False for k in ("image_axes", "model_vollseg", "n_tiles")}
             )
             self.args = SimpleNamespace()
             self.viewer = None
@@ -804,26 +785,20 @@ def plugin_wrapper_mtrack():
                     )
 
             def _image_axes(valid):
-                axes, image, err = getattr(
-                    self.args, "image_axes", (None, None, None)
-                )
+                axes, image, err = getattr(self.args, "image_axes", (None, None, None))
 
                 if axes == "YX":
                     plugin.recompute_current_button.hide()
                 widgets_valid(
                     plugin.axes,
                     valid=(
-                        valid
-                        or (image is None and (axes is None or len(axes) == 0))
+                        valid or (image is None and (axes is None or len(axes) == 0))
                     ),
                 )
 
                 if valid:
                     plugin.axes.tooltip = "\n".join(
-                        [
-                            f"{a} = {s}"
-                            for a, s in zip(axes, get_data(image).shape)
-                        ]
+                        [f"{a} = {s}" for a, s in zip(axes, get_data(image).shape)]
                     )
                     return axes, image
                 else:
@@ -840,10 +815,7 @@ def plugin_wrapper_mtrack():
                 widgets_valid(plugin.n_tiles, valid=(valid or image is None))
                 if valid:
                     plugin.n_tiles.tooltip = "\n".join(
-                        [
-                            f"{t}: {s}"
-                            for t, s in zip(n_tiles, get_data(image).shape)
-                        ]
+                        [f"{t}: {s}" for t, s in zip(n_tiles, get_data(image).shape)]
                     )
                     return n_tiles
                 else:
@@ -856,9 +828,7 @@ def plugin_wrapper_mtrack():
                 return True
 
             def _restore():
-                widgets_valid(
-                    plugin.image, valid=plugin.image.value is not None
-                )
+                widgets_valid(plugin.image, valid=plugin.image.value is not None)
 
             all_valid = False
             help_msg = ""
@@ -923,9 +893,7 @@ def plugin_wrapper_mtrack():
             if self.debug:
                 print(
                     f"valid ({all_valid}):",
-                    ", ".join(
-                        [f"{k}={v}" for k, v in vars(self.valid).items()]
-                    ),
+                    ", ".join([f"{k}={v}" for k, v in vars(self.valid).items()]),
                 )
 
     update_vollseg = Updater()
@@ -935,13 +903,8 @@ def plugin_wrapper_mtrack():
         if key is not None:
             model_selected_vollseg = key
             config_vollseg = model_vollseg_configs.get(key)
-            update_vollseg(
-                "model_vollseg", config_vollseg is not None, config_vollseg
-            )
-        if (
-            plugin.vollseg_model_type.value
-            == DEFAULTS_MODEL["model_vollseg_none"]
-        ):
+            update_vollseg("model_vollseg", config_vollseg is not None, config_vollseg)
+        if plugin.vollseg_model_type.value == DEFAULTS_MODEL["model_vollseg_none"]:
             model_selected_vollseg = None
 
     @change_handler(plugin_ransac_parameters.ransac_model_type, init=False)
@@ -1006,14 +969,10 @@ def plugin_wrapper_mtrack():
         else:
             select_model_vollseg(None)
             plugin.call_button.enabled = True
-            plugin.model_folder_vollseg.line_edit.tooltip = (
-                "Invalid model directory"
-            )
+            plugin.model_folder_vollseg.line_edit.tooltip = "Invalid model directory"
 
     def _special_function(layer_data, ransac_model):
-        estimators, estimator_inliers = _common_function(
-            layer_data, ransac_model
-        )
+        estimators, estimator_inliers = _common_function(layer_data, ransac_model)
         line_locations = []
         for i in range(len(estimators)):
 
@@ -1284,8 +1243,6 @@ def plugin_wrapper_mtrack():
 
         rate_calculator(ndim)
 
-    # -> triggered by napari (if there are any open images on plugin launch)
-
     def rate_calculator(ndim: int):
 
         growth_events = []
@@ -1317,23 +1274,17 @@ def plugin_wrapper_mtrack():
                             next_index = next_shape_data[0][0]
 
                         start_time = int(
-                            shape_data[0][
-                                1 + plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[0][1 + plugin_ransac_parameters.time_axis.value]
                         )
                         end_time = int(
-                            shape_data[1][
-                                1 + plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[1][1 + plugin_ransac_parameters.time_axis.value]
                         )
 
                         if end_time == start_time:
                             end_time = end_time + 1
                             start_time = start_time - 1
                         rate = (
-                            shape_data[1][
-                                2 - plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[1][2 - plugin_ransac_parameters.time_axis.value]
                             - shape_data[0][
                                 2 - plugin_ransac_parameters.time_axis.value
                             ]
@@ -1355,10 +1306,7 @@ def plugin_wrapper_mtrack():
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
-                            )
+                            / (plugin.microscope_calibration_time.value + 1.0e-10)
                         )
 
                         if rate >= 0 and len(all_shape_layer_data) > 1:
@@ -1400,22 +1348,15 @@ def plugin_wrapper_mtrack():
                                     ]
                                 )
 
-                        if (
-                            next_index != index
-                            or s == len(all_shape_layer_data) - 1
-                        ):
+                        if next_index != index or s == len(all_shape_layer_data) - 1:
                             cat_frequ = cat_frequ / (total_time + 1.0e-10)
                             cat_frequ = cat_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
+                                plugin.microscope_calibration_time.value + 1.0e-10
                             )
 
+                            res_frequ = res_frequ / (total_depol_time + 1.0e-10)
                             res_frequ = res_frequ / (
-                                total_depol_time + 1.0e-10
-                            )
-                            res_frequ = res_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
+                                plugin.microscope_calibration_time.value + 1.0e-10
                             )
 
                             cat_events.append(
@@ -1459,22 +1400,16 @@ def plugin_wrapper_mtrack():
                     if ndim == 2:
                         index = 0
                         start_time = int(
-                            shape_data[0][
-                                plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[0][plugin_ransac_parameters.time_axis.value]
                         )
                         end_time = int(
-                            shape_data[1][
-                                plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[1][plugin_ransac_parameters.time_axis.value]
                         )
                         if end_time == start_time:
                             end_time = end_time + 1
                             start_time = start_time - 1
                         rate = (
-                            shape_data[1][
-                                1 - plugin_ransac_parameters.time_axis.value
-                            ]
+                            shape_data[1][1 - plugin_ransac_parameters.time_axis.value]
                             - shape_data[0][
                                 1 - plugin_ransac_parameters.time_axis.value
                             ]
@@ -1483,10 +1418,7 @@ def plugin_wrapper_mtrack():
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
-                            )
+                            / (plugin.microscope_calibration_time.value + 1.0e-10)
                         )
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
@@ -1524,8 +1456,7 @@ def plugin_wrapper_mtrack():
                         if s == len(all_shape_layer_data) - 1:
                             cat_frequ = cat_frequ / total_time
                             cat_frequ = cat_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
+                                plugin.microscope_calibration_time.value + 1.0e-10
                             )
 
                             total_depol_time = total_depol_time + abs(
@@ -1533,8 +1464,7 @@ def plugin_wrapper_mtrack():
                             )
                             res_frequ = res_frequ / total_depol_time
                             res_frequ = res_frequ / (
-                                plugin.microscope_calibration_time.value
-                                + 1.0e-10
+                                plugin.microscope_calibration_time.value + 1.0e-10
                             )
                             cat_events.append(
                                 [
@@ -1613,17 +1543,12 @@ def plugin_wrapper_mtrack():
 
     @change_handler(plugin.image, init=False)
     def _image_change(image: napari.layers.Image):
-        plugin.image.tooltip = (
-            f"Shape: {get_data(image).shape, str(image.name)}"
-        )
+        plugin.image.tooltip = f"Shape: {get_data(image).shape, str(image.name)}"
 
         # dimensionality of selected model: 2, 3, or None (unknown)
         ndim = get_data(image).ndim
         ndim_model = ndim
-        if (
-            plugin.vollseg_model_type.value
-            != DEFAULTS_MODEL["model_vollseg_none"]
-        ):
+        if plugin.vollseg_model_type.value != DEFAULTS_MODEL["model_vollseg_none"]:
             if model_selected_vollseg in model_vollseg_configs:
                 config = model_vollseg_configs[model_selected_vollseg]
                 ndim_model = config.get("n_dim")
@@ -1659,16 +1584,10 @@ def plugin_wrapper_mtrack():
             axes = axes_check_and_normalize(
                 value, length=get_data(image).ndim, disallowed="S"
             )
-            if (
-                plugin.vollseg_model_type.value
-                != DEFAULTS_MODEL["model_vollseg_none"]
-            ):
+            if plugin.vollseg_model_type.value != DEFAULTS_MODEL["model_vollseg_none"]:
                 update_vollseg("image_axes", True, (axes, image, None))
         except ValueError as err:
-            if (
-                plugin.vollseg_model_type.value
-                != DEFAULTS_MODEL["model_vollseg_none"]
-            ):
+            if plugin.vollseg_model_type.value != DEFAULTS_MODEL["model_vollseg_none"]:
                 update_vollseg("image_axes", False, (value, image, err))
         # finally:
         # widgets_inactive(plugin.timelapse_opts, active=('T' in axes))
@@ -1686,21 +1605,13 @@ def plugin_wrapper_mtrack():
                 value = tuple(value)
                 len(value) == len(shape) or _raise(TypeError())
             except TypeError:
-                raise ValueError(
-                    f"must be a tuple/list of length {len(shape)}"
-                )
+                raise ValueError(f"must be a tuple/list of length {len(shape)}")
             if not all(isinstance(t, int) and t >= 1 for t in value):
                 raise ValueError("each value must be an integer >= 1")
-            if (
-                plugin.vollseg_model_type.value
-                != DEFAULTS_MODEL["model_vollseg_none"]
-            ):
+            if plugin.vollseg_model_type.value != DEFAULTS_MODEL["model_vollseg_none"]:
                 update_vollseg("n_tiles", True, (value, image, None))
         except (ValueError, SyntaxError) as err:
-            if (
-                plugin.vollseg_model_type.value
-                != DEFAULTS_MODEL["model_vollseg_none"]
-            ):
+            if plugin.vollseg_model_type.value != DEFAULTS_MODEL["model_vollseg_none"]:
                 update_vollseg("n_tiles", False, (None, image, err))
 
     # -------------------------------------------------------------------------
