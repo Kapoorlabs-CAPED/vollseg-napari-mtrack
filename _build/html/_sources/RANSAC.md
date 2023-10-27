@@ -1,4 +1,8 @@
-# RANSAC for Dynamic Instability Quantification
+# Plugin usage
+
+## Tutorial
+- A detailed tutorial can be found at [Demo](https://www.youtube.com/watch?v=MLLkC4Ls220&t=316s)
+
 
 ## Plugin Steps
 
