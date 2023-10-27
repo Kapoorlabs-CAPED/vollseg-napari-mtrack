@@ -1,21 +1,13 @@
-# Dynamic instability definition
+# Dynamic Instability Definition
 
-## Growth Rate (µm/s):
+## Calculating Growth and Shrink Rates:
 
-The growth rate represents the speed at which the microtubule plus end is advancing during the growth phase.
-Calculate the slope of the linear portion of the kymograph corresponding to the growing phase. You can use the formula: Growth Rate = ΔDistance / ΔTime, where ΔDistance is the change in position and ΔTime is the change in time.
+- The growth rate and shrink rate are calculated based on the slope of the kymograph corresponding to the growing and shrinking phases, respectively.
+- The rates are computed for each event and added to the appropriate event list (growth or shrink).
 
-## Shrink Rate (µm/s):
+## Catastrophe and Rescue Frequencies:
 
-The shrink rate is the speed at which the microtubule plus end is shortening during the shrinking phase.
-Calculate the slope of the linear portion of the kymograph corresponding to the shrinking phase. You can use the formula: Shrink Rate = ΔDistance / ΔTime, where ΔDistance is the change in position and ΔTime is the change in time.
-
-## Catastrophe Frequency (events per unit time):
-
-Catastrophe frequency measures how often microtubules transition from the growth phase to the shrinking phase.
-Count the number of catastrophe events in a given time interval and divide by the length of that time interval. Formula: Catastrophe Frequency = Number of Catastrophes / Time Interval.
-
-## Rescue Frequency (events per unit time):
-
-Rescue frequency quantifies how often microtubules transition from the shrinking phase to the growth phase.
-Count the number of rescue events in a given time interval and divide by the length of that time interval. Formula: Rescue Frequency = Number of Rescues / Time Interval.
+- Catastrophe and rescue frequencies are calculated based on event counts.
+- Catastrophe frequency is incremented when a microtubule undergoes a catastrophe event.
+- Rescue frequency is incremented when a microtubule undergoes a rescue event.
+- Both frequencies are normalized by dividing by the total time of observation and microscope calibration time.

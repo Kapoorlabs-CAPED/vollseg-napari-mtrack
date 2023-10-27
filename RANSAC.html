@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>RANSAC for dynamic instability quantification &#8212; VollSeg extension for microtubule kymograph analysis</title>
+    <title>RANSAC for Dynamic Instability Quantification &#8212; VollSeg extension for microtubule kymograph analysis</title>
   
   
   
@@ -63,7 +63,7 @@ const thebe_selector_output = ".output, .cell_output"
     <script>DOCUMENTATION_OPTIONS.pagename = 'RANSAC';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Dynamic instability definition" href="DYNAMIC.html" />
+    <link rel="next" title="Dynamic Instability Definition" href="DYNAMIC.html" />
     <link rel="prev" title="vollseg-napari-mtrack" href="README.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="None"/>
@@ -135,8 +135,14 @@ const thebe_selector_output = ".output, .cell_output"
   
   
   
+    
+    
+      
+    
+    
+    <img src="_static/kapoorlablogo.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="_static/kapoorlablogo.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
-    <p class="title logo__title">VollSeg extension for microtubule kymograph analysis</p>
   
 </a></div>
         <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
@@ -150,8 +156,8 @@ const thebe_selector_output = ".output, .cell_output"
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">RANSAC for dynamic instability quantification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="DYNAMIC.html">Dynamic instability definition</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">RANSAC for Dynamic Instability Quantification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DYNAMIC.html">Dynamic Instability Definition</a></li>
 </ul>
 
     </div>
@@ -335,7 +341,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>RANSAC for dynamic instability quantification</h1>
+    <h1>RANSAC for Dynamic Instability Quantification</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -345,9 +351,9 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-steps">Plugin steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-steps">Plugin Steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#segmentation-of-kymographs">Segmentation of Kymographs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function-fits-on-segmented-pixels">Function Fits on Segmented pixels</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function-fits-on-segmented-pixels">Function Fits on Segmented Pixels</a></li>
 </ul>
             </nav>
         </div>
@@ -360,32 +366,40 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="ransac-for-dynamic-instability-quantification">
-<h1>RANSAC for dynamic instability quantification<a class="headerlink" href="#ransac-for-dynamic-instability-quantification" title="Permalink to this headline">#</a></h1>
+<h1>RANSAC for Dynamic Instability Quantification<a class="headerlink" href="#ransac-for-dynamic-instability-quantification" title="Permalink to this headline">#</a></h1>
 <section id="plugin-steps">
-<h2>Plugin steps<a class="headerlink" href="#plugin-steps" title="Permalink to this headline">#</a></h2>
-<p>This plugin is designed to analyze 2D kymographs that can be in a directory and can have differnt image size.</p>
-<ol class="arabic simple">
-<li><p>Open a directory containing the kymograph tif files and when prompted by the Napari viewer select the Mtrack reader function that opens it as a fake timelapse image containing different kymographs at different timesteps.</p></li>
-<li><p>Select the pre-trained segmentation model to segment the kymograph edges.</p></li>
-<li><p>Select the parameters: pixel size in X and T (to compute the instability parameters in real units), number of tiles (see Segmentation of Kymographs), Max error (see Function Fits).</p></li>
-<li><p>Select RANSAC model type (with minimum 2 points) or a quadratic model (with minimum 3 points).</p></li>
-<li><p>Now hit run and it will segment the kymographs and perform the function fits.</p></li>
-<li><p>To correct teh segmentation mistakes use the labels layer and hit ‘Recompute current file fits’</p></li>
-<li><p>If the results do not improve, you can do manual fits using Napari shapes layer and hit ‘Recompute with manual functions’, it will override the automatic fits.</p></li>
-<li><p>The plot and table tabs contain the growth, shrink rates, catastrophe and rescue frequency as plot and table.</p></li>
-</ol>
+<h2>Plugin Steps<a class="headerlink" href="#plugin-steps" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>Analyze 2D kymographs from a directory, even with varying image sizes.</p></li>
+<li><p>Open a directory containing the kymograph TIFF files and select the Mtrack reader function in the Napari viewer to open them as a fake timelapse image.</p></li>
+<li><p>Choose a pre-trained segmentation model to segment kymograph edges.</p></li>
+<li><p>Configure parameters including pixel size in X and T, number of tiles, and maximum error.</p></li>
+<li><p>Select either a RANSAC model type (with a minimum of 2 points) or a quadratic model (with a minimum of 3 points).</p></li>
+<li><p>Click “Run” to segment kymographs and perform function fits.</p></li>
+<li><p>Correct segmentation mistakes using the labels layer and click “Recompute current file fits.”</p></li>
+<li><p>If results don’t improve, manually fit using the Napari shapes layer and click “Recompute with manual functions.”</p></li>
+<li><p>View growth rates, shrink rates, catastrophe, and rescue frequency in the “Plot” and “Table” tabs.</p></li>
+</ul>
 </section>
 <section id="segmentation-of-kymographs">
 <h2>Segmentation of Kymographs<a class="headerlink" href="#segmentation-of-kymographs" title="Permalink to this headline">#</a></h2>
-<p>We have a pre-trained U-Net model for segmenting kymographs. The U-Net model is applied on each timepoint of the kymograph, n_tiles is to enable fitting the each 2D image into memory and the default (1,1,1) shoudl work well if not you can set it to be (1,2,2) or even higher numbers to tile the image in the XY dimension. The result of this step is a labels layer that segments the edges of the kymograph.</p>
+<ul class="simple">
+<li><p>Utilize a pre-trained U-Net model for kymograph segmentation.</p></li>
+<li><p>Apply the model to each timepoint of the kymograph.</p></li>
+<li><p>Adjust the number of tiles (e.g., (1,1,1) for default) to fit 2D images into memory.</p></li>
+<li><p>Generate a labels layer to segment kymograph edges.</p></li>
+</ul>
 </section>
 <section id="function-fits-on-segmented-pixels">
-<h2>Function Fits on Segmented pixels<a class="headerlink" href="#function-fits-on-segmented-pixels" title="Permalink to this headline">#</a></h2>
-<p>We have implemented RANSAC based function fits in our library, caped-ai-mtrack, using that library we can find multiple instances of linear functions in the image recursively.
-RANSAC is a non-deterministic algorithm that fits a function to data points by maximizing the number of data points that support the function fit (inliers).
-If linear model is selected then we use linear function to find all the inliers, remove them from the fitting process and continue till all the growth/shrink events have been found in the image. If quadratic model is selected then we use quadratic function to find all the inliers and on the found inliers we fit linear function and repeat the process to find all the growth/shrink events. This method is based on our publication: doi:10.1038/s41598-018-37767-1</p>
-<p>Max Error (in pixels) : This determines the maximum tolerance of RANSAC fits on both events, growth and shrinkage  events. A high maximum error value will classify more data points as inliers, a low maximum error will classify more data points as outliers.
-Minimum number of time points : This determines the minimum number of data points that define a growth event. If you choose 20, only events that last for 20 time points will be considered to be a growth event. Shrinkage events, on the opposite, are much shorter and are allowed to last only 2 data points.</p>
+<h2>Function Fits on Segmented Pixels<a class="headerlink" href="#function-fits-on-segmented-pixels" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>Implement RANSAC-based function fits in the caped-ai-mtrack library.</p></li>
+<li><p>RANSAC is a non-deterministic algorithm for fitting functions to data points.</p></li>
+<li><p>For the linear model, find inliers using a linear function, remove them from the fitting process, and continue until all growth/shrink events are found.</p></li>
+<li><p>For the quadratic model, find inliers with a quadratic function, fit a linear function to the inliers, and repeat to find all events.</p></li>
+<li><p>Control the “Max Error” (in pixels) to determine tolerance in RANSAC fits for growth and shrinkage events.</p></li>
+<li><p>Set the “Minimum Number of Time Points” to define growth events, e.g., choosing 20 means only events lasting 20 time points are considered growth events. Shrinkage events can be shorter, lasting only 2 data points.</p></li>
+</ul>
 </section>
 </section>
 
@@ -434,7 +448,7 @@ Minimum number of time points : This determines the minimum number of data point
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Dynamic instability definition</p>
+        <p class="prev-next-title">Dynamic Instability Definition</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -456,9 +470,9 @@ Minimum number of time points : This determines the minimum number of data point
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-steps">Plugin steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-steps">Plugin Steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#segmentation-of-kymographs">Segmentation of Kymographs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function-fits-on-segmented-pixels">Function Fits on Segmented pixels</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function-fits-on-segmented-pixels">Function Fits on Segmented Pixels</a></li>
 </ul>
   </nav></div>
 
