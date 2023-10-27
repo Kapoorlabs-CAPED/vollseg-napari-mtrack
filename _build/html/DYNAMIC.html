@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Dynamic Instability Definition &#8212; VollSeg extension for microtubule kymograph analysis</title>
+    <title>Growth and Shrink Rate Calculation &#8212; VollSeg extension for microtubule kymograph analysis</title>
   
   
   
@@ -156,7 +156,8 @@ const thebe_selector_output = ".output, .cell_output"
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="RANSAC.html">RANSAC for Dynamic Instability Quantification</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Instability Definition</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Growth and Shrink Rate Calculation</a></li>
+
 </ul>
 
     </div>
@@ -340,7 +341,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Dynamic Instability Definition</h1>
+    <h1>Growth and Shrink Rate Calculation</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -350,9 +351,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-growth-and-shrink-rates">Calculating Growth and Shrink Rates:</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequencies">Catastrophe and Rescue Frequencies:</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Growth and Shrink Rate Calculation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequency-calculation">Catastrophe and Rescue Frequency Calculation</a></li>
 </ul>
+
             </nav>
         </div>
     </div>
@@ -363,24 +365,24 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="dynamic-instability-definition">
-<h1>Dynamic Instability Definition<a class="headerlink" href="#dynamic-instability-definition" title="Permalink to this headline">#</a></h1>
-<section id="calculating-growth-and-shrink-rates">
-<h2>Calculating Growth and Shrink Rates:<a class="headerlink" href="#calculating-growth-and-shrink-rates" title="Permalink to this headline">#</a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="growth-and-shrink-rate-calculation">
+<h1>Growth and Shrink Rate Calculation<a class="headerlink" href="#growth-and-shrink-rate-calculation" title="Permalink to this headline">#</a></h1>
+<p>The growth rate and shrink rate are computed by analyzing the slope of the kymograph, which represents microtubule behavior during its growth and shrinking phases. Specifically:</p>
 <ul class="simple">
-<li><p>The growth rate and shrink rate are calculated based on the slope of the kymograph corresponding to the growing and shrinking phases, respectively.</p></li>
-<li><p>The rates are computed for each event and added to the appropriate event list (growth or shrink).</p></li>
+<li><p><strong>Growth Rate</strong>: When a microtubule is in its growth phase, the code calculates the rate at which it is extending. This rate is computed by analyzing the slope of the kymograph corresponding to the growth phase.</p></li>
+<li><p><strong>Shrink Rate</strong>: Conversely, when a microtubule is undergoing shrinkage, the code calculates the rate at which it is depolymerizing. The shrink rate is also determined by analyzing the slope of the kymograph, but for the shrinking phase.</p></li>
 </ul>
+<p>The calculated growth and shrink rates are then added to the appropriate event lists, where growth rates are added to the “growth_events” list, and shrink rates are added to the “shrink_events” list.</p>
 </section>
-<section id="catastrophe-and-rescue-frequencies">
-<h2>Catastrophe and Rescue Frequencies:<a class="headerlink" href="#catastrophe-and-rescue-frequencies" title="Permalink to this headline">#</a></h2>
+<section class="tex2jax_ignore mathjax_ignore" id="catastrophe-and-rescue-frequency-calculation">
+<h1>Catastrophe and Rescue Frequency Calculation<a class="headerlink" href="#catastrophe-and-rescue-frequency-calculation" title="Permalink to this headline">#</a></h1>
 <ul class="simple">
-<li><p>Catastrophe and rescue frequencies are calculated based on event counts.</p></li>
-<li><p>Catastrophe frequency is incremented when a microtubule undergoes a catastrophe event.</p></li>
-<li><p>Rescue frequency is incremented when a microtubule undergoes a rescue event.</p></li>
-<li><p>Both frequencies are normalized by dividing by the total time of observation and microscope calibration time.</p></li>
+<li><p><strong>Catastrophe Frequency</strong>: When the rate of change in microtubule length (as indicated by the slope of the kymograph) is negative (i.e., the microtubule is rapidly depolymerizing), it signifies a catastrophe event. The code identifies these events and increments the catastrophe frequency (cat_frequ) to keep track of how frequently catastrophes occur.</p></li>
+<li><p>Additionally, the code updates the total depolymerization time during catastrophe events. This is a measure of how long microtubules spend depolymerizing during the observation.</p></li>
+<li><p><strong>Growth Event Normalization</strong>: When the rate is non-negative (indicating a growth event), and if the kymograph index changes (suggesting a different microtubule), the code normalizes the previously calculated catastrophe frequency. This normalization is done concerning the total time of observation, providing a normalized value that characterizes the frequency of catastrophe events relative to the overall observation time.</p></li>
+<li><p>Similar calculations are applied to compute rescue events. When the microtubule undergoes a rescue event, the code increments the rescue frequency (res_frequ) and maintains the total depolymerization time.</p></li>
+<li><p>The computed rescue frequency is also normalized with respect to the total time of observation, providing a measure of how frequently rescue events occur in relation to the total observation time.</p></li>
 </ul>
-</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -441,9 +443,10 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-growth-and-shrink-rates">Calculating Growth and Shrink Rates:</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequencies">Catastrophe and Rescue Frequencies:</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Growth and Shrink Rate Calculation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequency-calculation">Catastrophe and Rescue Frequency Calculation</a></li>
 </ul>
+
   </nav></div>
 
 </div></div>
