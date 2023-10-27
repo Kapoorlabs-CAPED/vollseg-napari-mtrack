@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Growth and Shrink Rate Calculation &#8212; VollSeg extension for microtubule kymograph analysis</title>
+    <title>Dynamic instability computation &#8212; VollSeg extension for microtubule kymograph analysis</title>
   
   
   
@@ -63,7 +63,7 @@ const thebe_selector_output = ".output, .cell_output"
     <script>DOCUMENTATION_OPTIONS.pagename = 'DYNAMIC';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="RANSAC for Dynamic Instability Quantification" href="RANSAC.html" />
+    <link rel="prev" title="Plugin usage" href="RANSAC.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="None"/>
   </head>
@@ -155,9 +155,8 @@ const thebe_selector_output = ".output, .cell_output"
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="RANSAC.html">RANSAC for Dynamic Instability Quantification</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Growth and Shrink Rate Calculation</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="RANSAC.html">Plugin usage</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic instability computation</a></li>
 </ul>
 
     </div>
@@ -328,9 +327,7 @@ document.write(`
   </button>
 `);
 </script>
-<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</label>
+
 </div></div>
       
     </div>
@@ -341,21 +338,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Growth and Shrink Rate Calculation</h1>
+    <h1>Dynamic instability computation</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Growth and Shrink Rate Calculation</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequency-calculation">Catastrophe and Rescue Frequency Calculation</a></li>
-</ul>
-
-            </nav>
         </div>
     </div>
 </div>
@@ -365,23 +352,39 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="growth-and-shrink-rate-calculation">
-<h1>Growth and Shrink Rate Calculation<a class="headerlink" href="#growth-and-shrink-rate-calculation" title="Permalink to this headline">#</a></h1>
-<p>The growth rate and shrink rate are computed by analyzing the slope of the kymograph, which represents microtubule behavior during its growth and shrinking phases. Specifically:</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="dynamic-instability-computation">
+<h1>Dynamic instability computation<a class="headerlink" href="#dynamic-instability-computation" title="Permalink to this headline">#</a></h1>
 <ul class="simple">
-<li><p><strong>Growth Rate</strong>: When a microtubule is in its growth phase, the code calculates the rate at which it is extending. This rate is computed by analyzing the slope of the kymograph corresponding to the growth phase.</p></li>
-<li><p><strong>Shrink Rate</strong>: Conversely, when a microtubule is undergoing shrinkage, the code calculates the rate at which it is depolymerizing. The shrink rate is also determined by analyzing the slope of the kymograph, but for the shrinking phase.</p></li>
+<li><p><strong>Growth Rate Calculation</strong>:</p>
+<ul>
+<li><p>First, all growth events are detected.</p></li>
+<li><p>Microtubule polymerization velocity (vg [nm/s]) is assumed to follow a near-linear polynomial function, typically implemented as a 2nd or 3rd order polynomial regularized with a linear function.</p></li>
+<li><p>RANSAC identifies the largest subset of consecutive time points that follow near-linear growth.</p></li>
+<li><p>The software iteratively removes time points belonging to an identified growth event from the sampling set.</p></li>
+<li><p>RANSAC repeats the sampling until no further growth events can be found.</p></li>
+<li><p>In the example shown, RANSAC identifies multiple growth events.</p></li>
+<li><p>Finally, the software fits a linear function to all inlier points of each growth event.</p></li>
 </ul>
-<p>The calculated growth and shrink rates are then added to the appropriate event lists, where growth rates are added to the “growth_events” list, and shrink rates are added to the “shrink_events” list.</p>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="catastrophe-and-rescue-frequency-calculation">
-<h1>Catastrophe and Rescue Frequency Calculation<a class="headerlink" href="#catastrophe-and-rescue-frequency-calculation" title="Permalink to this headline">#</a></h1>
-<ul class="simple">
-<li><p><strong>Catastrophe Frequency</strong>: When the rate of change in microtubule length (as indicated by the slope of the kymograph) is negative (i.e., the microtubule is rapidly depolymerizing), it signifies a catastrophe event. The code identifies these events and increments the catastrophe frequency (cat_frequ) to keep track of how frequently catastrophes occur.</p></li>
-<li><p>Additionally, the code updates the total depolymerization time during catastrophe events. This is a measure of how long microtubules spend depolymerizing during the observation.</p></li>
-<li><p><strong>Growth Event Normalization</strong>: When the rate is non-negative (indicating a growth event), and if the kymograph index changes (suggesting a different microtubule), the code normalizes the previously calculated catastrophe frequency. This normalization is done concerning the total time of observation, providing a normalized value that characterizes the frequency of catastrophe events relative to the overall observation time.</p></li>
-<li><p>Similar calculations are applied to compute rescue events. When the microtubule undergoes a rescue event, the code increments the rescue frequency (res_frequ) and maintains the total depolymerization time.</p></li>
-<li><p>The computed rescue frequency is also normalized with respect to the total time of observation, providing a measure of how frequently rescue events occur in relation to the total observation time.</p></li>
+</li>
+<li><p><strong>Shrink Rate Calculation</strong>:</p>
+<ul>
+<li><p>Next, RANSAC identifies events of microtubule shrinkage.</p></li>
+<li><p>Microtubule depolymerization velocity (vs [nm/s]) is often significantly higher than polymerization velocity, leading to short depolymerization events.</p></li>
+<li><p>The software uses a linear model limited to fast decline for the iterative RANSAC algorithm.</p></li>
+</ul>
+</li>
+<li><p><strong>Catastrophe Frequency Calculation</strong>:</p>
+<ul>
+<li><p>Catastrophe frequency (fc [s−1]) is determined by dividing the total number of identified shrinkage events by the total time the microtubules were growing (events/time).</p></li>
+<li><p>It takes into account only full growth events when calculating catastrophe frequency.</p></li>
+</ul>
+</li>
+<li><p><strong>Rescue Frequency Calculation</strong>:</p>
+<ul>
+<li><p>Analogously, rescue frequency (fr [s−1]) is determined by dividing the total number of identified growth events by the total time the microtubule spent shrinking (events/time).</p></li>
+<li><p>Distinction is made between total catastrophes (when the microtubule shrinks all the way back to the seed) and rescues by comparing the start of the new growth event to the baseline (end point of the seed).</p></li>
+</ul>
+</li>
 </ul>
 </section>
 
@@ -422,7 +425,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">RANSAC for Dynamic Instability Quantification</p>
+        <p class="prev-next-title">Plugin usage</p>
       </div>
     </a>
 </div></div>
@@ -434,22 +437,6 @@ document.write(`
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Growth and Shrink Rate Calculation</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#catastrophe-and-rescue-frequency-calculation">Catastrophe and Rescue Frequency Calculation</a></li>
-</ul>
-
-  </nav></div>
-
-</div></div>
               
             
           </div>

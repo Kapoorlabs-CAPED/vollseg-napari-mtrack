@@ -1,21 +1,23 @@
-# Growth and Shrink Rate Calculation
+# Dynamic instability computation
 
-The growth rate and shrink rate are computed by analyzing the slope of the kymograph, which represents microtubule behavior during its growth and shrinking phases. Specifically:
+- **Growth Rate Calculation**:
+  - First, all growth events are detected.
+  - Microtubule polymerization velocity (vg [nm/s]) is assumed to follow a near-linear polynomial function, typically implemented as a 2nd or 3rd order polynomial regularized with a linear function.
+  - RANSAC identifies the largest subset of consecutive time points that follow near-linear growth.
+  - The software iteratively removes time points belonging to an identified growth event from the sampling set.
+  - RANSAC repeats the sampling until no further growth events can be found.
+  - In the example shown, RANSAC identifies multiple growth events.
+  - Finally, the software fits a linear function to all inlier points of each growth event.
 
-- **Growth Rate**: When a microtubule is in its growth phase, the code calculates the rate at which it is extending. This rate is computed by analyzing the slope of the kymograph corresponding to the growth phase.
+- **Shrink Rate Calculation**:
+  - Next, RANSAC identifies events of microtubule shrinkage.
+  - Microtubule depolymerization velocity (vs [nm/s]) is often significantly higher than polymerization velocity, leading to short depolymerization events.
+  - The software uses a linear model limited to fast decline for the iterative RANSAC algorithm.
 
-- **Shrink Rate**: Conversely, when a microtubule is undergoing shrinkage, the code calculates the rate at which it is depolymerizing. The shrink rate is also determined by analyzing the slope of the kymograph, but for the shrinking phase.
+- **Catastrophe Frequency Calculation**:
+  - Catastrophe frequency (fc [s−1]) is determined by dividing the total number of identified shrinkage events by the total time the microtubules were growing (events/time).
+  - It takes into account only full growth events when calculating catastrophe frequency.
 
-The calculated growth and shrink rates are then added to the appropriate event lists, where growth rates are added to the "growth_events" list, and shrink rates are added to the "shrink_events" list.
-
-# Catastrophe and Rescue Frequency Calculation
-
-- **Catastrophe Frequency**: When the rate of change in microtubule length (as indicated by the slope of the kymograph) is negative (i.e., the microtubule is rapidly depolymerizing), it signifies a catastrophe event. The code identifies these events and increments the catastrophe frequency (cat_frequ) to keep track of how frequently catastrophes occur.
-
-- Additionally, the code updates the total depolymerization time during catastrophe events. This is a measure of how long microtubules spend depolymerizing during the observation.
-
-- **Growth Event Normalization**: When the rate is non-negative (indicating a growth event), and if the kymograph index changes (suggesting a different microtubule), the code normalizes the previously calculated catastrophe frequency. This normalization is done concerning the total time of observation, providing a normalized value that characterizes the frequency of catastrophe events relative to the overall observation time.
-
-- Similar calculations are applied to compute rescue events. When the microtubule undergoes a rescue event, the code increments the rescue frequency (res_frequ) and maintains the total depolymerization time.
-
-- The computed rescue frequency is also normalized with respect to the total time of observation, providing a measure of how frequently rescue events occur in relation to the total observation time.
+- **Rescue Frequency Calculation**:
+  - Analogously, rescue frequency (fr [s−1]) is determined by dividing the total number of identified growth events by the total time the microtubule spent shrinking (events/time).
+  - Distinction is made between total catastrophes (when the microtubule shrinks all the way back to the seed) and rescues by comparing the start of the new growth event to the baseline (end point of the seed).

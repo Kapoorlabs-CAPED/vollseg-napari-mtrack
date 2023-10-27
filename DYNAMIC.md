@@ -1,3 +1,5 @@
+# Dynamic instability computation
+
 - **Growth Rate Calculation**:
   - First, all growth events are detected.
   - Microtubule polymerization velocity (vg [nm/s]) is assumed to follow a near-linear polynomial function, typically implemented as a 2nd or 3rd order polynomial regularized with a linear function.
