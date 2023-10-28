@@ -22,12 +22,17 @@
 - The plots are interactive and can be saved as well showing measurments for the whole experiment.
 
 ### Open Data
+To give the plugin a quick try get the data from the Napari Sample Data menu.
 ![Open Data](images/open_data.gif)
 
 ### First Run
+For your first run use the pre-trained U-Net model to detect the kymograph edges and using RANSAC to fit functions with a max error of 0.01, Linear function and minimum number of points to be 2. 
 ![First Run](images/first_run.gif)
 
 ### Correction
+For some kymographs the fits may not be adequate, in this case either change the parameters and try with different parameters and click on the Green button and it will change the results as RANSAC is a non-deterministic algorithm. If that does not work use the Napari shapes layer to remove the wrong fits and make your own fits and then use the Orange button to recompute using the manual fits and that will update the plots and the table.
+
+Most importantly since you want your results to be in micrometer per second so do not forget to change the pixel size in X and T in the plugin menu as by default it is 1.
 ![Corrections](images/correction.gif)
 
 
