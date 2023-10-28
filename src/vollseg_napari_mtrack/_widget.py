@@ -1257,8 +1257,8 @@ def plugin_wrapper_mtrack():
         cat_frequ = 0
         res_frequ = 0
         min_start_height = np.inf
-        total_depol_time = 1
-        total_time = 1
+        total_depol_time = 0
+        total_time = 0
         for layer in list(plugin.viewer.value.layers):
             if isinstance(layer, napari.layers.Shapes):
                 all_shape_layer_data = layer.data
@@ -1299,17 +1299,15 @@ def plugin_wrapper_mtrack():
                         if start_height < min_start_height:
                             min_start_height = start_height
 
-                        if s > 0:
-                            if start_height > min_start_height:
-                                res_frequ = res_frequ + 1
-
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / (plugin.microscope_calibration_time.value + 1.0e-10)
+                            / (plugin.microscope_calibration_time.value)
                         )
 
                         if rate >= 0 and len(all_shape_layer_data) > 1:
+
+                            res_frequ = res_frequ + 1
 
                             growth_events.append(
                                 [
@@ -1349,14 +1347,18 @@ def plugin_wrapper_mtrack():
                                 )
 
                         if next_index != index or s == len(all_shape_layer_data) - 1:
-                            cat_frequ = cat_frequ / (total_time + 1.0e-10)
-                            cat_frequ = cat_frequ / (
-                                plugin.microscope_calibration_time.value + 1.0e-10
-                            )
 
-                            res_frequ = res_frequ / (total_depol_time + 1.0e-10)
-                            res_frequ = res_frequ / (
-                                plugin.microscope_calibration_time.value + 1.0e-10
+                            if total_depol_time > 0:
+                                res_frequ = res_frequ / (total_depol_time)
+                                res_frequ = res_frequ / (
+                                    plugin.microscope_calibration_time.value
+                                )
+                            else:
+                                res_frequ = 0
+
+                            cat_frequ = cat_frequ / (total_time - total_depol_time)
+                            cat_frequ = cat_frequ / (
+                                plugin.microscope_calibration_time.value
                             )
 
                             cat_events.append(
@@ -1385,8 +1387,8 @@ def plugin_wrapper_mtrack():
                             cat_frequ = 0
                             res_frequ = 0
 
-                            total_depol_time = 1
-                            total_time = 1
+                            total_depol_time = 0
+                            total_time = 0
 
                             data = np.vstack(
                                 (
@@ -1418,10 +1420,11 @@ def plugin_wrapper_mtrack():
                         rate = (
                             rate
                             * plugin.microscope_calibration_space.value
-                            / (plugin.microscope_calibration_time.value + 1.0e-10)
+                            / (plugin.microscope_calibration_time.value)
                         )
                         total_time = total_time + abs(end_time - start_time)
                         if rate >= 0 and len(all_shape_layer_data) > 1:
+                            res_frequ = res_frequ + 1
                             growth_events.append(
                                 [
                                     index,
@@ -1434,7 +1437,9 @@ def plugin_wrapper_mtrack():
                                 ]
                             )
                         else:
-
+                            total_depol_time = total_depol_time + abs(
+                                end_time - start_time
+                            )
                             cat_frequ = cat_frequ + 1
                             if (
                                 s < len(all_shape_layer_data) - 1
@@ -1454,17 +1459,17 @@ def plugin_wrapper_mtrack():
                                 )
 
                         if s == len(all_shape_layer_data) - 1:
-                            cat_frequ = cat_frequ / total_time
-                            cat_frequ = cat_frequ / (
-                                plugin.microscope_calibration_time.value + 1.0e-10
-                            )
 
-                            total_depol_time = total_depol_time + abs(
-                                end_time - start_time
-                            )
-                            res_frequ = res_frequ / total_depol_time
-                            res_frequ = res_frequ / (
-                                plugin.microscope_calibration_time.value + 1.0e-10
+                            if total_depol_time > 0:
+                                res_frequ = res_frequ / total_depol_time
+                                res_frequ = res_frequ / (
+                                    plugin.microscope_calibration_time.value
+                                )
+                            else:
+                                res_frequ = 0
+                            cat_frequ = cat_frequ / (total_time - total_depol_time)
+                            cat_frequ = cat_frequ / (
+                                plugin.microscope_calibration_time.value
                             )
                             cat_events.append(
                                 [
