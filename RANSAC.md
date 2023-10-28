@@ -21,6 +21,8 @@
 - The Tabulour data contains dynamic instability measurments and can be saved with a right click as a csv.
 - The plots are interactive and can be saved as well showing measurments for the whole experiment.
 
+
+To display the movies below right click to display the controls.
 ### Open Data
 To give the plugin a quick try get the data from the Napari Sample Data menu.
 ![Open Data](images/open_data_mod.mp4)
