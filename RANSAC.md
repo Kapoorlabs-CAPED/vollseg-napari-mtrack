@@ -17,13 +17,13 @@
 - View growth rates, shrink rates, catastrophe, and rescue frequency in the "Plot" and "Table" tabs.
 
 ### Open Data
-![Open Data](images/open_data.mp4)
+![Open Data](images/open_data.gif)
 
 ### First Run
-![First Run](images/first_run.mp4)
+![First Run](images/first_run.gif)
 
 ### Correction
-![Corrections](images/correction.mp4)
+![Corrections](images/correction.gif)
 
 
 ![plugin design](images/mtrack_plugin_look.jpg)

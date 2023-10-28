@@ -16,6 +16,16 @@
 - If results don't improve, manually fit using the Napari shapes layer and click "Recompute with manual functions."
 - View growth rates, shrink rates, catastrophe, and rescue frequency in the "Plot" and "Table" tabs.
 
+### Open Data
+![Open Data](images/open_data.gif)
+
+### First Run
+![First Run](images/first_run.gif)
+
+### Correction
+![Corrections](images/correction.gif)
+
+
 ![plugin design](images/mtrack_plugin_look.jpg)
 
 ## Segmentation of Kymographs
