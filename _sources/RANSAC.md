@@ -16,6 +16,11 @@
 - If results don't improve, manually fit using the Napari shapes layer and click "Recompute with manual functions."
 - View growth rates, shrink rates, catastrophe, and rescue frequency in the "Plot" and "Table" tabs.
 
+## Outputs
+
+- The Tabulour data contains dynamic instability measurments and can be saved with a right click as a csv.
+- The plots are interactive and can be saved as well showing measurments for the whole experiment.
+
 ### Open Data
 ![Open Data](images/open_data.gif)
 
