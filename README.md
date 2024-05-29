@@ -16,7 +16,6 @@ This product is a testament to our expertise at KapoorLabs, where we specialize 
 [![License BSD-3](https://img.shields.io/pypi/l/vollseg-napari-mtrack.svg?color=green)](https://github.com/Kapoorlabs-CAPED/vollseg-napari-mtrack/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/vollseg-napari-mtrack.svg?color=green)](https://pypi.org/project/vollseg-napari-mtrack)
 [![Python Version](https://img.shields.io/pypi/pyversions/vollseg-napari-mtrack.svg?color=green)](https://python.org)
-[![tests](https://github.com/Kapoorlabs-CAPED/vollseg-napari-mtrack/workflows/tests/badge.svg)](https://github.com/Kapoorlabs-CAPED/vollseg-napari-mtrack/actions)
 [![codecov](https://codecov.io/gh/Kapoorlabs-CAPED/vollseg-napari-mtrack/branch/main/graph/badge.svg)](https://codecov.io/gh/Kapoorlabs-CAPED/vollseg-napari-mtrack)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vollseg-napari-mtrack)](https://napari-hub.org/plugins/vollseg-napari-mtrack)
 
